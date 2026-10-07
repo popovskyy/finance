@@ -1,69 +1,102 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { Plus } from "lucide-react";
+import { useState } from "react";
+import { InsightsCard } from "@/components/ai/InsightsCard";
+import { AddAssetDialog } from "@/components/assets/AddAssetDialog";
+import { AllocationDonut } from "@/components/dashboard/AllocationDonut";
+import { HoldingsTable } from "@/components/dashboard/HoldingsTable";
+import { NetWorthChart } from "@/components/dashboard/NetWorthChart";
+import { NetWorthHero, SummaryStats } from "@/components/dashboard/NetWorthHero";
+import { Button } from "@/components/ui/Button";
+import { Card, ErrorNote } from "@/components/ui/Card";
+import { Logo } from "@/components/layout/Logo";
+import { usePortfolio } from "@/hooks/queries";
+import type { Timeframe } from "@/lib/pnl/portfolio";
+
+export default function DashboardPage() {
+  const portfolio = usePortfolio();
+  const [timeframe, setTimeframe] = useState<Timeframe>("1D");
+  const [adding, setAdding] = useState(false);
+  const data = portfolio.data;
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+    <div className="space-y-6">
+      <header className="flex items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <span className="md:hidden">
+            <Logo size={30} />
+          </span>
+          <h1 className="font-display text-xl font-medium tracking-tight">Огляд</h1>
+        </div>
+        <Button variant="primary" onClick={() => setAdding(true)}>
+          <Plus size={18} aria-hidden />
+          Додати актив
+        </Button>
+      </header>
+
+      {portfolio.isLoading ? (
+        <DashboardSkeleton />
+      ) : portfolio.error || !data ? (
+        <ErrorNote
+          message={portfolio.error?.message ?? "Не вдалося завантажити портфель"}
+          onRetry={() => portfolio.refetch()}
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+      ) : data.holdings.length === 0 ? (
+        <Card order={0} className="px-6 py-14 text-center">
+          <h2 className="font-display text-2xl font-medium tracking-tight">Портфель поки порожній</h2>
+          <p className="mx-auto mt-3 max-w-md text-muted">
+            Додайте першу криптовалюту, акцію чи готівковий залишок, і тут з&apos;являться ваші статки, графік та
+            результати.
           </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+          <Button variant="primary" className="mt-6" onClick={() => setAdding(true)}>
+            <Plus size={18} aria-hidden />
+            Додати перший актив
+          </Button>
+        </Card>
+      ) : (
+        <>
+          <NetWorthHero portfolio={data} timeframe={timeframe} onTimeframe={setTimeframe} />
+          <Card order={1}>
+            <SummaryStats portfolio={data} />
+          </Card>
+          <div className="grid gap-6 lg:grid-cols-3">
+            <Card order={2} className="lg:col-span-2">
+              <NetWorthChart currency={data.baseCurrency} />
+            </Card>
+            <Card order={3}>
+              <AllocationDonut portfolio={data} />
+            </Card>
+          </div>
+          <Card order={4} className="overflow-hidden">
+            <h2 className="px-5 pt-5 pb-2 font-semibold">Активи</h2>
+            <HoldingsTable portfolio={data} timeframe={timeframe} />
+          </Card>
+          <Card order={5}>
+            <InsightsCard />
+          </Card>
+        </>
+      )}
+
+      <AddAssetDialog open={adding} onClose={() => setAdding(false)} />
+    </div>
+  );
+}
+
+function DashboardSkeleton() {
+  return (
+    <div className="space-y-6" aria-busy="true" aria-label="Завантаження портфеля">
+      <div className="space-y-3">
+        <div className="skeleton h-4 w-28" />
+        <div className="skeleton h-14 w-72 max-w-full" />
+        <div className="skeleton h-4 w-44" />
+      </div>
+      <div className="skeleton h-20 rounded-2xl" />
+      <div className="grid gap-6 lg:grid-cols-3">
+        <div className="skeleton h-80 rounded-2xl lg:col-span-2" />
+        <div className="skeleton h-80 rounded-2xl" />
+      </div>
+      <div className="skeleton h-72 rounded-2xl" />
     </div>
   );
 }

@@ -1,36 +1,61 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Статки
 
-## Getting Started
+Особистий облік статків: крипта, акції та готівка в одному місці, з чистими статками в одній валюті, прибутком/збитком за день, тиждень, місяць і весь час та AI-аналітиком на Google Gemini. Інтерфейс українською, один користувач, встановлюється на iPhone як застосунок (PWA).
 
-First, run the development server:
+## Можливості
+
+- Активи трьох типів: криптовалюти (CoinGecko), акції та ETF (Yahoo Finance), готівка в 26 валютах.
+- Журнал операцій: купівля, продаж, поповнення, зняття — з датою, ціною, кількістю й комісією.
+- Метод середньої ціни: середня ціна купівлі, зафіксований і нереалізований результат. Продати більше, ніж є на дату операції, не можна.
+- Результат за період не враховує нові вкладення як прибуток.
+- Графік статків, розподіл за типами, AI-звіт (ризик, концентрація) і чат про портфель.
+- Один пароль на весь застосунок (`APP_PASSWORD`), без акаунтів.
+
+## Локальний запуск
+
+Потрібні Node.js 22+ і Docker.
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+docker compose up -d          # PostgreSQL на порту 55432
+cp .env.example .env          # впишіть GEMINI_API_KEY
+npm install
+npx prisma migrate dev        # створює таблиці
+npm run db:seed               # необов'язково: приклад портфеля
+npm run dev                   # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+| Змінна | Призначення |
+| --- | --- |
+| `DATABASE_URL` | Рядок підключення PostgreSQL |
+| `GEMINI_API_KEY` | Ключ Google Gemini для AI-аналітика |
+| `GEMINI_MODEL` | Необов'язково, модель (типово `gemini-flash-latest`) |
+| `APP_PASSWORD` | Пароль до застосунку; порожній — без пароля |
+| `COINGECKO_API_KEY` | Необов'язково, demo-ключ CoinGecko |
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Тести
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm test                      # юніт-тести рушія PnL (Vitest)
+npm run e2e                   # збірка + сценарії в браузері (Playwright)
+```
 
-## Learn More
+E2E-тести працюють з окремою базою `statky_test` у тому ж контейнері (`CREATE DATABASE statky_test`), реальними провайдерами цін і, якщо задано `GEMINI_API_KEY`, реальним Gemini.
 
-To learn more about Next.js, take a look at the following resources:
+## Деплой на Vercel
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+База — Neon Postgres з Vercel Marketplace (додає `DATABASE_URL` і `DATABASE_URL_UNPOOLED`). Скрипт `vercel-build` застосовує міграції перед збіркою. У налаштуваннях проєкту задайте `GEMINI_API_KEY` і `APP_PASSWORD`.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Як влаштовано
 
-## Deploy on Vercel
+```
+src/lib/pnl/        рушій: позиції за середньою ціною, результат за період, зведення портфеля
+src/lib/prices/     адаптери CoinGecko / Yahoo, кеш котирувань (60 с) та денних цін (таблиця PriceSnapshot)
+src/lib/ai/         контекст портфеля для моделі, промпти, провайдер Gemini
+src/app/api/        REST: активи, операції, портфель, пошук, AI, пароль
+src/app/            сторінки: огляд, операції, актив, налаштування
+src/proxy.ts        перевірка пароля для всіх сторінок і API
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Залишки не зберігаються окремо — вони щоразу обчислюються з журналу операцій, тож журнал є єдиним джерелом правди.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Іконки генеруються скриптом `node scripts/generate-icons.mjs`.

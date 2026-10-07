@@ -1,0 +1,76 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum AssetCategory {
+  CRYPTO
+  STOCK
+  CASH
+}
+
+enum TransactionType {
+  BUY
+  SELL
+  DEPOSIT
+  WITHDRAWAL
+}
+
+model Asset {
+  id           String        @id @default(cuid())
+  category     AssetCategory
+  symbol       String
+  name         String
+  // CoinGecko coin id, Yahoo ticker, or ISO currency code for cash
+  providerId   String
+  // Currency the asset's price is quoted in (for cash: the currency itself)
+  currency     String
+  createdAt    DateTime      @default(now())
+  transactions Transaction[]
+
+  @@unique([category, providerId])
+}
+
+model Transaction {
+  id        String          @id @default(cuid())
+  assetId   String
+  asset     Asset           @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  type      TransactionType
+  date      DateTime
+  quantity  Decimal
+  // Per-unit price in the asset's quote currency (1 for cash)
+  price     Decimal
+  fee       Decimal         @default(0)
+  note      String?
+  createdAt DateTime        @default(now())
+
+  @@index([assetId, date])
+}
+
+// Cache of daily closing prices
+model PriceSnapshot {
+  id         String        @id @default(cuid())
+  category   AssetCategory
+  providerId String
+  date       String // YYYY-MM-DD (UTC)
+  price      Float
+  currency   String
+
+  @@unique([category, providerId, date])
+}
+
+model Setting {
+  key   String @id
+  value String
+}
+
+model ChatMessage {
+  id        String   @id @default(cuid())
+  role      String // "user" | "assistant"
+  content   String
+  createdAt DateTime @default(now())
+}

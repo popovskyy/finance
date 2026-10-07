@@ -1,26 +1,319 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+  --bg: #eef1f5;
+  --surface: #ffffff;
+  --surface-2: #f5f7fa;
+  --ink: #0e1a2b;
+  --muted: #5b6878;
+  --line: #dde3ea;
+  --accent: #2742d9;
+  --accent-ink: #ffffff;
+  --accent-soft: #e6eaff;
+  --gain: #0a8a5f;
+  --gain-soft: #e0f5ec;
+  --loss: #d23b42;
+  --loss-soft: #fde8e9;
+  --warn: #a8650a;
+  --warn-soft: #fdf1dc;
+  --crypto: #e8a02e;
+  --stock: #3d5bf0;
+  --cash: #1fa893;
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+  --shadow-pop: 0 18px 50px -12px rgb(14 26 43 / 0.28), 0 2px 6px rgb(14 26 43 / 0.08);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --bg: #0a101c;
+    --surface: #121a2a;
+    --surface-2: #182236;
+    --ink: #e9eef6;
+    --muted: #93a0b4;
+    --line: #232f45;
+    --accent: #8097ff;
+    --accent-ink: #0a101c;
+    --accent-soft: #1b2650;
+    --gain: #3ecf99;
+    --gain-soft: #10301f;
+    --loss: #ff7077;
+    --loss-soft: #3a171b;
+    --warn: #f0b458;
+    --warn-soft: #33260f;
+    --crypto: #f2b550;
+    --stock: #7088ff;
+    --cash: #3ccdb6;
+    --shadow-pop: 0 18px 50px -12px rgb(0 0 0 / 0.7), 0 0 0 1px rgb(255 255 255 / 0.06);
   }
 }
 
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-accent: var(--accent);
+  --color-accent-ink: var(--accent-ink);
+  --color-accent-soft: var(--accent-soft);
+  --color-gain: var(--gain);
+  --color-gain-soft: var(--gain-soft);
+  --color-loss: var(--loss);
+  --color-loss-soft: var(--loss-soft);
+  --color-warn: var(--warn);
+  --color-warn-soft: var(--warn-soft);
+  --color-crypto: var(--crypto);
+  --color-stock: var(--stock);
+  --color-cash: var(--cash);
+  --font-sans: var(--font-onest), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-unbounded), var(--font-onest), sans-serif;
+  --ease-out: var(--ease-out);
+  --ease-in-out: var(--ease-in-out);
+}
+
+html {
+  color-scheme: light dark;
+  -webkit-text-size-adjust: 100%;
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Press feedback shared by every button-like control. */
+.pressable {
+  transition:
+    transform 140ms var(--ease-out),
+    background-color 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease,
+    opacity 160ms ease;
+}
+.pressable:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+/* First paint of a page: sections settle in one short cascade. */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+.rise {
+  animation: rise 420ms var(--ease-out) both;
+  animation-delay: calc(var(--i, 0) * 60ms);
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+}
+.fade-in {
+  animation: fade 240ms ease both;
+}
+
+/* Rows entering a table or list. */
+.row-in {
+  animation: rise 320ms var(--ease-out) both;
+  animation-delay: calc(min(var(--i, 0), 10) * 30ms);
+}
+
+@keyframes shimmer {
+  to {
+    background-position: -200% 0;
+  }
+}
+.skeleton {
+  border-radius: 8px;
+  background: linear-gradient(90deg, var(--line) 25%, var(--surface-2) 50%, var(--line) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s linear infinite;
+}
+
+/* Allocation bar segments grow from the left once data arrives. */
+@keyframes grow-x {
+  from {
+    transform: scaleX(0);
+  }
+}
+.grow-x {
+  transform-origin: left;
+  animation: grow-x 700ms var(--ease-out) both;
+  animation-delay: calc(var(--i, 0) * 80ms + 120ms);
+}
+
+/* Streaming chat cursor. */
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+.caret::after {
+  content: "";
+  display: inline-block;
+  width: 0.5em;
+  height: 1em;
+  margin-left: 2px;
+  vertical-align: -0.15em;
+  border-radius: 2px;
+  background: var(--accent);
+  animation: blink 1s steps(1) infinite;
+}
+
+/* Modal: centered card on desktop, bottom sheet on phones. */
+dialog.modal {
+  margin: auto;
+  width: min(480px, calc(100vw - 32px));
+  max-height: min(720px, calc(100dvh - 32px));
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: var(--shadow-pop);
+  padding: 0;
+  opacity: 0;
+  transform: scale(0.96);
+  transition:
+    opacity 200ms var(--ease-out),
+    transform 200ms var(--ease-out),
+    overlay 200ms allow-discrete,
+    display 200ms allow-discrete;
+}
+dialog.modal[open] {
+  opacity: 1;
+  transform: none;
+}
+@starting-style {
+  dialog.modal[open] {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}
+dialog.modal::backdrop {
+  background: rgb(8 14 26 / 0);
+  transition:
+    background-color 200ms ease,
+    overlay 200ms allow-discrete,
+    display 200ms allow-discrete;
+}
+dialog.modal[open]::backdrop {
+  background: rgb(8 14 26 / 0.5);
+}
+@starting-style {
+  dialog.modal[open]::backdrop {
+    background: rgb(8 14 26 / 0);
+  }
+}
+
+@media (max-width: 639px) {
+  dialog.modal {
+    margin: auto 0 0;
+    width: 100vw;
+    max-width: 100vw;
+    max-height: 92dvh;
+    border-radius: 24px 24px 0 0;
+    border-bottom: 0;
+    padding-bottom: env(safe-area-inset-bottom);
+    transform: translateY(100%);
+    opacity: 1;
+    transition:
+      transform 380ms var(--ease-drawer),
+      overlay 380ms allow-discrete,
+      display 380ms allow-discrete;
+  }
+  @starting-style {
+    dialog.modal[open] {
+      opacity: 1;
+      transform: translateY(100%);
+    }
+  }
+}
+
+/* Chat panel grows out of the button that opens it. */
+.chat-panel {
+  transform-origin: bottom right;
+  opacity: 0;
+  transform: scale(0.94) translateY(8px);
+  pointer-events: none;
+  visibility: hidden;
+  transition:
+    opacity 220ms var(--ease-out),
+    transform 220ms var(--ease-out),
+    visibility 0s linear 220ms;
+}
+.chat-panel[data-open="true"] {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+  visibility: visible;
+  transition:
+    opacity 220ms var(--ease-out),
+    transform 220ms var(--ease-out),
+    visibility 0s;
+}
+
+/* Segmented control thumb slides between options. */
+.seg-thumb {
+  transition:
+    transform 220ms var(--ease-in-out),
+    width 220ms var(--ease-in-out);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .hover-row:hover {
+    background: var(--surface-2);
+  }
+  .hover-lift:hover {
+    transform: translateY(-1px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rise,
+  .row-in,
+  .grow-x {
+    animation: fade 200ms ease both;
+    animation-delay: 0s;
+  }
+  .skeleton,
+  .caret::after {
+    animation: none;
+  }
+  .pressable:active:not(:disabled),
+  .hover-lift:hover {
+    transform: none;
+  }
+  dialog.modal,
+  .chat-panel,
+  .chat-panel[data-open="true"] {
+    transform: none;
+    transition-duration: 120ms;
+  }
+  @starting-style {
+    dialog.modal[open] {
+      transform: none;
+      opacity: 0;
+    }
+  }
+  .seg-thumb {
+    transition: none;
+  }
 }

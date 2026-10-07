@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="uk">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Статки — немає з'єднання</title>
+    <style>
+      :root { color-scheme: light dark; }
+      body { margin: 0; min-height: 100dvh; display: grid; place-items: center; padding: 24px;
+        font-family: system-ui, sans-serif; background: #eef1f5; color: #0e1a2b; text-align: center; }
+      @media (prefers-color-scheme: dark) { body { background: #0a101c; color: #e9eef6; } }
+      h1 { font-size: 1.4rem; margin: 0 0 8px; }
+      p { margin: 0 0 20px; opacity: 0.7; max-width: 32ch; line-height: 1.5; }
+      button { font: inherit; font-weight: 600; padding: 12px 20px; border: 0; border-radius: 12px;
+        background: #2742d9; color: #fff; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Немає з'єднання із сервером</h1>
+      <p>Застосунок працює на вашому комп'ютері. Перевірте, що він запущений і ви в тій самій мережі.</p>
+      <button onclick="location.reload()">Спробувати ще раз</button>
+    </main>
+  </body>
+</html>

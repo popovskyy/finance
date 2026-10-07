@@ -1,0 +1,17 @@
+# Local PostgreSQL for development: docker compose up -d
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: statky-pg
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: statky
+      POSTGRES_PASSWORD: statky
+      POSTGRES_DB: statky
+    ports:
+      - "55432:5432"
+    volumes:
+      - statky-pg:/var/lib/postgresql/data
+
+volumes:
+  statky-pg:
