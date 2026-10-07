@@ -13,16 +13,16 @@
 
 ## Локальний запуск
 
-Потрібні Node.js 22+ і Docker.
+Потрібні Node.js 22+. Локальний запуск працює з тією ж базою Neon, що й продакшн, тож дані скрізь однакові.
 
 ```bash
-docker compose up -d          # PostgreSQL на порту 55432
-cp .env.example .env          # впишіть GEMINI_API_KEY
+vercel link && vercel env pull .env.local   # DATABASE_URL від Neon
+cp .env.example .env                        # впишіть GEMINI_API_KEY
 npm install
-npx prisma migrate dev        # створює таблиці
-npm run db:seed               # необов'язково: приклад портфеля
-npm run dev                   # http://localhost:3000
+npm run dev                                 # http://localhost:3000
 ```
+
+Без Vercel можна взяти локальний PostgreSQL: `docker compose up -d`, і `DATABASE_URL` з `.env.example`, потім `npx prisma migrate dev` та, за бажанням, `npm run db:seed` для прикладу портфеля.
 
 | Змінна | Призначення |
 | --- | --- |
@@ -39,7 +39,7 @@ npm test                      # юніт-тести рушія PnL (Vitest)
 npm run e2e                   # збірка + сценарії в браузері (Playwright)
 ```
 
-E2E-тести працюють з окремою базою `statky_test` у тому ж контейнері (`CREATE DATABASE statky_test`), реальними провайдерами цін і, якщо задано `GEMINI_API_KEY`, реальним Gemini.
+E2E-тести працюють з окремою базою `statky_test` у Docker-контейнері з `docker-compose.yml` (`CREATE DATABASE statky_test`), реальними провайдерами цін і, якщо задано `GEMINI_API_KEY`, реальним Gemini.
 
 ## Деплой на Vercel
 
