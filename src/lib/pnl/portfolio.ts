@@ -1,6 +1,6 @@
 import Decimal from "decimal.js";
 import type { PriceSeries } from "@/lib/prices/series";
-import { toDateKey, type Category } from "@/lib/prices/types";
+import { toDateKey, type Category, type ExtendedSession } from "@/lib/prices/types";
 import { combinePeriodPnl, periodPnl } from "./performance";
 import { computePosition, quantityAt, sortTxs } from "./positions";
 import type { PeriodPnl, Tx } from "./types";
@@ -21,6 +21,8 @@ export interface AssetInput {
   txs: Tx[];
   price: number | null;
   prevClose: number | null;
+  /** Set when `price` was traded outside the regular session. */
+  session?: ExtendedSession;
   history: PriceSeries;
   /** Conversion of one unit of `currency` into the base currency. */
   fx: { rate: number | null; prevClose: number | null; history: PriceSeries };
@@ -41,6 +43,8 @@ export interface Holding {
   quantity: number;
   /** Current unit price in the asset's currency. */
   price: number;
+  /** Set when `price` was traded outside the regular session. */
+  session?: ExtendedSession;
   /** Average buy price in the asset's currency. */
   avgCost: number;
   /** Figures below are in the base currency. */
@@ -162,6 +166,7 @@ export function buildPortfolio(assets: AssetInput[], baseCurrency: string, now =
       currency: r.asset.currency,
       quantity: r.native.quantity.toNumber(),
       price: r.nativePrice,
+      session: r.asset.session,
       avgCost: r.native.avgCost.toNumber(),
       value: r.value.toNumber(),
       costBasis: r.base.costBasis.toNumber(),

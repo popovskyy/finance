@@ -1,10 +1,15 @@
 export type Category = "CRYPTO" | "STOCK" | "CASH";
 
+/** Trading outside the regular session: before the open or after the close. */
+export type ExtendedSession = "PRE" | "POST";
+
 export interface Quote {
   price: number;
-  /** Previous close (24h-ago price for crypto); null when unknown. */
+  /** Close the day's change is measured from (24h-ago price for crypto); null when unknown. */
   prevClose: number | null;
   currency: string;
+  /** Set when `price` was traded outside the regular session. */
+  session?: ExtendedSession;
   /** True when the provider failed and this is the last known value. */
   stale?: boolean;
 }

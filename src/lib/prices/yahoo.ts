@@ -13,6 +13,41 @@ function normalize(price: number, currency: string) {
   return major ? { price: price / 100, currency: major } : { price, currency };
 }
 
+interface SessionPrices {
+  regularMarketPrice?: number;
+  regularMarketTime?: Date;
+  regularMarketPreviousClose?: number;
+  preMarketPrice?: number;
+  preMarketTime?: Date;
+  postMarketPrice?: number;
+  postMarketTime?: Date;
+}
+
+type SessionQuote = Pick<Quote, "price" | "prevClose" | "session">;
+
+/**
+ * The most recent trade, extended hours included, as brokers show it. A
+ * pre-market price moves from the last close; an after-hours one from the close
+ * before it, so the day's change covers the whole trading day. An extended
+ * price only counts when it is newer than the last regular trade.
+ */
+export function latestPrice(row: SessionPrices): SessionQuote | null {
+  if (row.regularMarketPrice == null) return null;
+  const prevClose = row.regularMarketPreviousClose ?? null;
+  let latest: SessionQuote = { price: row.regularMarketPrice, prevClose };
+  if (!row.regularMarketTime) return latest;
+
+  let at = row.regularMarketTime.getTime();
+  if (row.postMarketPrice != null && row.postMarketTime && row.postMarketTime.getTime() > at) {
+    latest = { price: row.postMarketPrice, prevClose, session: "POST" };
+    at = row.postMarketTime.getTime();
+  }
+  if (row.preMarketPrice != null && row.preMarketTime && row.preMarketTime.getTime() > at) {
+    latest = { price: row.preMarketPrice, prevClose: row.regularMarketPrice, session: "PRE" };
+  }
+  return latest;
+}
+
 /** Stocks, ETFs and FX pairs from Yahoo Finance (unofficial, no key). */
 export const yahoo: PriceProvider = {
   async search(query) {
@@ -35,14 +70,16 @@ export const yahoo: PriceProvider = {
     const rows = await yf.quote(ids);
     const quotes: Record<string, Quote> = {};
     for (const row of rows) {
-      if (row.regularMarketPrice == null) continue;
+      // ECN quotes are typed as a bare index signature, which TS won't match without a cast.
+      const latest = latestPrice(row as SessionPrices);
+      if (!latest) continue;
       const currency = row.currency ?? "USD";
-      const { price, currency: normalized } = normalize(row.regularMarketPrice, currency);
-      const prev = row.regularMarketPreviousClose;
+      const { price, currency: normalized } = normalize(latest.price, currency);
       quotes[row.symbol] = {
         price,
-        prevClose: prev == null ? null : normalize(prev, currency).price,
+        prevClose: latest.prevClose == null ? null : normalize(latest.prevClose, currency).price,
         currency: normalized,
+        session: latest.session,
       };
     }
     return quotes;

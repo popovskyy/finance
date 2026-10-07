@@ -12,7 +12,7 @@ import { ConfirmButton } from "@/components/ui/ConfirmButton";
 import { PnlText } from "@/components/ui/PnlText";
 import { useAsset, useDeleteAsset, usePortfolio } from "@/hooks/queries";
 import { formatMoney, formatPercent, formatQuantity } from "@/lib/format";
-import { CATEGORY_LABEL, TIMEFRAME_LABEL } from "@/lib/labels";
+import { CATEGORY_LABEL, SESSION_PHRASE, TIMEFRAME_LABEL } from "@/lib/labels";
 import { TIMEFRAMES } from "@/lib/pnl/portfolio";
 
 export default function AssetPage() {
@@ -77,7 +77,11 @@ export default function AssetPage() {
             <Stat
               label={isCash ? "Залишок" : "Кількість"}
               value={isCash ? formatMoney(holding.quantity, data.currency) : formatQuantity(holding.quantity)}
-              sub={isCash ? undefined : `Ціна ${formatMoney(holding.price, data.currency)}`}
+              sub={
+                isCash
+                  ? undefined
+                  : `Ціна ${formatMoney(holding.price, data.currency)}${holding.session ? ` ${SESSION_PHRASE[holding.session]}` : ""}`
+              }
             />
             <Stat
               label="Нереалізований результат"

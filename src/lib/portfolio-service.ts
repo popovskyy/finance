@@ -119,6 +119,7 @@ async function loadAssetInputsUncached(): Promise<LoadedInputs> {
       txs: asset.transactions.map(toTx),
       price: quote?.price ?? null,
       prevClose: quote?.prevClose ?? null,
+      session: quote?.session,
       history: history.series,
       fx: foreign
         ? { rate: fxQuote?.price ?? null, prevClose: fxQuote?.prevClose ?? null, history: fxSeries.series }

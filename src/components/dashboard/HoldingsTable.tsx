@@ -6,7 +6,7 @@ import Link from "next/link";
 import { Fragment, type CSSProperties } from "react";
 import { PnlText } from "@/components/ui/PnlText";
 import { formatMoney, formatPercent, formatQuantity } from "@/lib/format";
-import { CATEGORY_COLOR, CATEGORY_LABEL, TIMEFRAME_LABEL } from "@/lib/labels";
+import { CATEGORY_COLOR, CATEGORY_LABEL, SESSION_PHRASE, TIMEFRAME_LABEL } from "@/lib/labels";
 import type { PortfolioSummary, Timeframe } from "@/lib/pnl/portfolio";
 
 const TH = "py-2.5 text-right text-xs font-medium whitespace-nowrap text-muted";
@@ -84,6 +84,7 @@ export function HoldingsTable({ portfolio, timeframe }: { portfolio: PortfolioSu
                       </td>
                       <td className={clsx(TD, COL.price, "tabular whitespace-nowrap")}>
                         {isCash ? "—" : formatMoney(h.price, h.currency)}
+                        {h.session && <span className="block text-xs text-muted">{SESSION_PHRASE[h.session]}</span>}
                       </td>
                       <td className={clsx(TD, COL.quantity, "tabular whitespace-nowrap")}>{formatQuantity(h.quantity)}</td>
                       <td className={clsx(TD, COL.avgCost, "tabular whitespace-nowrap text-muted")}>
