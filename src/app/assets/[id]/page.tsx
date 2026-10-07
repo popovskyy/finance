@@ -70,8 +70,9 @@ export default function AssetPage() {
       </header>
 
       {holding ? (
-        <Card order={1}>
-          <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-2xl bg-line lg:grid-cols-4">
+        <Card order={1} className="@container">
+          {/* One column in narrow cards, so long sums never squeeze into half a phone screen. */}
+          <dl className="grid grid-cols-1 gap-px overflow-hidden rounded-t-2xl bg-line @sm:grid-cols-2 @3xl:grid-cols-4">
             <Stat label="Вартість" value={formatMoney(holding.value, base)} sub={`${formatPercent(holding.allocationPct, false)} портфеля`} />
             <Stat
               label={isCash ? "Залишок" : "Кількість"}
@@ -101,7 +102,7 @@ export default function AssetPage() {
       )}
 
       <Card order={2} className="overflow-hidden">
-        <h2 className="px-5 pt-5 pb-2 font-semibold">Операції</h2>
+        <h2 className="px-5 pt-5 pb-2 text-lg font-semibold tracking-tight">Операції</h2>
         {data.transactions.length === 0 ? (
           <p className="px-5 pb-6 text-sm text-muted">Для цього активу ще немає операцій.</p>
         ) : (

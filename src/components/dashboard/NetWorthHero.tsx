@@ -1,5 +1,6 @@
 "use client";
 
+import clsx from "clsx";
 import { TriangleAlert } from "lucide-react";
 import { PnlText } from "@/components/ui/PnlText";
 import { Segmented } from "@/components/ui/Segmented";
@@ -18,18 +19,23 @@ export function NetWorthHero({ portfolio, timeframe, onTimeframe }: Props) {
   const netWorth = useCountUp(portfolio.netWorth, 0);
   const { baseCurrency: currency } = portfolio;
   const pnl = portfolio.pnl[timeframe];
+  // Seven-digit sums get a smaller size so the figure always fits on one line.
+  const long = formatMoney(portfolio.netWorth, currency).length > 12;
 
   return (
-    <div className="rise flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-      <div className="min-w-0">
-        <p className="text-sm text-muted">Чисті статки</p>
+    <div className="rise @container flex flex-wrap items-end justify-between gap-x-8 gap-y-5">
+      <div className="max-w-full min-w-0">
+        <p className="text-base text-muted">Чисті статки</p>
         <p
-          className="tabular font-display mt-1 text-[clamp(2rem,8.5vw,3.75rem)] leading-[1.05] font-medium tracking-[-0.03em] break-words"
+          className={clsx(
+            "tabular font-display mt-1 leading-[1.05] font-medium tracking-[-0.03em] whitespace-nowrap",
+            long ? "text-[clamp(1.75rem,9cqi,4.25rem)]" : "text-[clamp(2.25rem,12cqi,4.25rem)]",
+          )}
           aria-label={formatMoney(portfolio.netWorth, currency)}
         >
           {formatMoney(netWorth, currency)}
         </p>
-        <p className="mt-2.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[15px]">
+        <p className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1.5 text-base">
           <PnlText abs={pnl.abs} pct={pnl.pct} currency={currency} className="font-semibold" />
           <span className="text-muted">{TIMEFRAME_PHRASE[timeframe]}</span>
           {portfolio.stale && (
@@ -42,7 +48,8 @@ export function NetWorthHero({ portfolio, timeframe, onTimeframe }: Props) {
       </div>
       <Segmented
         label="Період"
-        className="self-start lg:self-auto"
+        layout="fill"
+        className="sm:inline-flex sm:w-auto"
         value={timeframe}
         onChange={onTimeframe}
         options={TIMEFRAMES.map((value) => ({ value, label: TIMEFRAME_LABEL[value] }))}

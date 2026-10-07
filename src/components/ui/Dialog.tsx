@@ -33,7 +33,7 @@ export function Dialog({ open, onClose, title, children }: Props) {
     >
       <div className="flex max-h-[inherit] flex-col">
         <header className="flex items-center justify-between gap-4 px-5 pt-5 pb-3">
-          <h2 className="font-display text-lg font-medium tracking-tight">{title}</h2>
+          <h2 className="font-display text-xl font-medium tracking-tight">{title}</h2>
           <button
             type="button"
             onClick={onClose}
@@ -43,7 +43,7 @@ export function Dialog({ open, onClose, title, children }: Props) {
             <X size={18} />
           </button>
         </header>
-        <div className="overflow-y-auto px-5 pb-5">{children}</div>
+        <div className="@container overflow-y-auto px-5 pb-5">{children}</div>
       </div>
     </dialog>
   );

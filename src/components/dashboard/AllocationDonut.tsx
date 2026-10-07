@@ -10,13 +10,13 @@ export function AllocationDonut({ portfolio }: { portfolio: PortfolioSummary }) 
   const largest = [...data].sort((a, b) => b.value - a.value)[0];
 
   return (
-    <div className="flex h-full flex-col p-5">
-      <h2 className="font-semibold">Розподіл</h2>
+    <div className="@container flex h-full flex-col p-5">
+      <h2 className="text-lg font-semibold tracking-tight">Розподіл</h2>
       {data.length === 0 ? (
         <p className="grid flex-1 place-items-center py-10 text-sm text-muted">Поки що нічого розподіляти</p>
       ) : (
-        <>
-          <div className="relative mx-auto mt-3 aspect-square w-full max-w-52">
+        <div className="mt-4 flex flex-1 flex-col items-center gap-5 @md:flex-row @md:gap-10">
+          <div className="relative aspect-square w-full max-w-52 shrink-0">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
@@ -44,23 +44,23 @@ export function AllocationDonut({ portfolio }: { portfolio: PortfolioSummary }) 
                 <span className="tabular font-display text-2xl font-medium">
                   {formatPercent(largest.allocationPct, false)}
                 </span>
-                <span className="text-sm text-muted">{CATEGORY_LABEL[largest.category]}</span>
+                <span className="text-base text-muted">{CATEGORY_LABEL[largest.category]}</span>
               </div>
             )}
           </div>
-          <ul className="mt-5 space-y-2.5">
+          <ul className="grid w-full grid-cols-[auto_minmax(0,1fr)_auto_auto] items-center gap-x-3 gap-y-2.5 text-sm @xs:text-base">
             {data.map((c) => (
-              <li key={c.category} className="flex items-center gap-2.5 text-sm">
-                <span className="size-2.5 shrink-0 rounded-full" style={{ background: CATEGORY_COLOR[c.category] }} />
-                <span className="flex-1">{CATEGORY_LABEL[c.category]}</span>
-                <span className="tabular text-muted">{formatPercent(c.allocationPct, false)}</span>
-                <span className="tabular w-24 text-right font-medium">
+              <li key={c.category} className="col-span-4 grid grid-cols-subgrid items-center">
+                <span className="size-2.5 rounded-full" style={{ background: CATEGORY_COLOR[c.category] }} />
+                <span className="min-w-0 truncate">{CATEGORY_LABEL[c.category]}</span>
+                <span className="tabular text-right text-muted">{formatPercent(c.allocationPct, false)}</span>
+                <span className="tabular text-right font-medium">
                   {formatMoney(c.value, portfolio.baseCurrency, { digits: 0 })}
                 </span>
               </li>
             ))}
           </ul>
-        </>
+        </div>
       )}
     </div>
   );

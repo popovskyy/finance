@@ -21,7 +21,7 @@ export function Button({ variant = "secondary", size = "md", className, type = "
       type={type}
       className={clsx(
         "pressable inline-flex shrink-0 items-center justify-center gap-2 rounded-xl font-medium whitespace-nowrap disabled:cursor-not-allowed disabled:opacity-50",
-        size === "md" && "h-11 px-4 text-[15px]",
+        size === "md" && "h-12 px-4 text-base",
         size === "sm" && "h-9 px-3 text-sm",
         size === "icon" && "size-9",
         VARIANTS[variant],

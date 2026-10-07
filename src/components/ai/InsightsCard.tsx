@@ -25,7 +25,7 @@ export function InsightsCard() {
             <Sparkles size={16} aria-hidden />
           </span>
           <div>
-            <h2 className="leading-tight font-semibold">AI-аналітик</h2>
+            <h2 className="text-lg leading-tight font-semibold tracking-tight">AI-аналітик</h2>
             {data && <p className="text-xs text-muted">Оновлено {formatDateTime(data.generatedAt)}</p>}
           </div>
         </div>
@@ -50,7 +50,7 @@ export function InsightsCard() {
         </div>
       ) : !data ? (
         <div className="mt-4 flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <p className="max-w-prose text-sm text-muted">
+          <p className="max-w-prose text-base text-muted">
             Отримайте підсумок результатів, оцінку ризику та попередження про концентрацію активів. Дані портфеля
             надсилаються до Google Gemini.
           </p>
@@ -61,16 +61,16 @@ export function InsightsCard() {
         </div>
       ) : (
         <div key={data.generatedAt} className="fade-in mt-4 space-y-5">
-          <p className="max-w-[72ch] text-[15px] leading-relaxed">{data.insights.summary}</p>
+          <p className="max-w-[68ch] text-base leading-relaxed">{data.insights.summary}</p>
 
           <div className="grid gap-4 md:grid-cols-2">
             <div className="rounded-xl bg-surface-2 p-4">
               <h3 className="text-sm font-medium text-muted">За добу</h3>
-              <p className="mt-1.5 text-sm leading-relaxed">{data.insights.performance.daily}</p>
+              <p className="mt-1.5 text-base leading-relaxed">{data.insights.performance.daily}</p>
             </div>
             <div className="rounded-xl bg-surface-2 p-4">
               <h3 className="text-sm font-medium text-muted">За тиждень і місяць</h3>
-              <p className="mt-1.5 text-sm leading-relaxed">{data.insights.performance.weekly}</p>
+              <p className="mt-1.5 text-base leading-relaxed">{data.insights.performance.weekly}</p>
             </div>
           </div>
 
@@ -82,13 +82,13 @@ export function InsightsCard() {
                 {RISK[data.insights.risk.level].label}
               </span>
             </div>
-            <p className="mt-2 max-w-[72ch] text-sm leading-relaxed">{data.insights.risk.assessment}</p>
+            <p className="mt-2 max-w-[68ch] text-base leading-relaxed">{data.insights.risk.assessment}</p>
           </div>
 
           {data.insights.concentrationWarnings.length > 0 && (
             <ul className="space-y-2">
               {data.insights.concentrationWarnings.map((warning, i) => (
-                <li key={i} className="flex gap-3 rounded-xl bg-warn-soft px-4 py-3 text-sm">
+                <li key={i} className="flex gap-3 rounded-xl bg-warn-soft px-4 py-3 text-base">
                   <TriangleAlert size={16} className="mt-0.5 shrink-0 text-warn" aria-hidden />
                   <span>
                     <strong className="font-semibold">{warning.asset}.</strong> {warning.message}
@@ -101,7 +101,7 @@ export function InsightsCard() {
           {data.insights.suggestions.length > 0 && (
             <div>
               <h3 className="font-medium">На що звернути увагу</h3>
-              <ul className="mt-2 max-w-[72ch] list-disc space-y-1.5 pl-5 text-sm leading-relaxed marker:text-muted">
+              <ul className="mt-2 max-w-[68ch] list-disc space-y-1.5 pl-5 text-base leading-relaxed marker:text-muted">
                 {data.insights.suggestions.map((suggestion, i) => (
                   <li key={i}>{suggestion}</li>
                 ))}

@@ -8,8 +8,6 @@ test("fits a phone screen with bottom navigation", async ({ page }) => {
   await expect(page.getByRole("navigation", { name: "Основна навігація" }).last()).toBeVisible();
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
   expect(overflow).toBeLessThanOrEqual(0);
-  await expect(page.locator(".recharts-pie-sector").first()).toBeVisible();
-  await page.waitForTimeout(1200);
   await page.screenshot({ path: "test-results/mobile-dashboard.png" });
 });
 

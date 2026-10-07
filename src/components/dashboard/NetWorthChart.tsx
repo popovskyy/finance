@@ -21,10 +21,10 @@ export function NetWorthChart({ currency }: { currency: string }) {
   return (
     <div className="flex h-full flex-col p-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="font-semibold">Динаміка статків</h2>
+        <h2 className="text-lg font-semibold tracking-tight">Динаміка статків</h2>
         <Segmented label="Проміжок графіка" size="sm" value={range} onChange={setRange} options={RANGES} />
       </div>
-      <div className="mt-4 h-64 min-h-0 flex-1">
+      <div className="mt-4 h-64 xl:h-auto xl:min-h-64 xl:flex-1">
         {history.isLoading ? (
           <div className="skeleton h-full" />
         ) : history.error ? (
@@ -45,7 +45,7 @@ export function NetWorthChart({ currency }: { currency: string }) {
               <XAxis
                 dataKey="date"
                 tickFormatter={(date: string) => formatDate(date, false)}
-                tick={{ fill: "var(--muted)", fontSize: 12 }}
+                tick={{ fill: "var(--muted)", fontSize: 13 }}
                 tickLine={false}
                 axisLine={false}
                 minTickGap={48}
@@ -53,10 +53,10 @@ export function NetWorthChart({ currency }: { currency: string }) {
               />
               <YAxis
                 orientation="right"
-                width={56}
+                width="auto"
                 domain={[(min: number) => min * 0.98, (max: number) => max * 1.02]}
                 tickFormatter={(value: number) => formatMoney(value, currency, { compact: true })}
-                tick={{ fill: "var(--muted)", fontSize: 12 }}
+                tick={{ fill: "var(--muted)", fontSize: 13 }}
                 tickLine={false}
                 axisLine={false}
                 tickCount={4}
@@ -69,7 +69,7 @@ export function NetWorthChart({ currency }: { currency: string }) {
                   if (!point) return null;
                   return (
                     <div className="rounded-xl border border-line bg-surface px-3 py-2 shadow-lg">
-                      <p className="text-xs text-muted">{formatDate(point.date)}</p>
+                      <p className="text-sm text-muted">{formatDate(point.date)}</p>
                       <p className="tabular font-semibold">{formatMoney(point.value, currency)}</p>
                     </div>
                   );

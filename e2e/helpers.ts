@@ -1,10 +1,14 @@
-import { expect, type Page } from "@playwright/test";
+import { expect, type BrowserContext, type Page } from "@playwright/test";
 import { authToken } from "../src/lib/auth";
 import { E2E_PASSWORD } from "../playwright.config";
 
 /** Skips the password page by setting the auth cookie directly. */
 export async function unlock(page: Page) {
-  await page.context().addCookies([
+  await unlockContext(page.context());
+}
+
+export async function unlockContext(context: BrowserContext) {
+  await context.addCookies([
     { name: "statky_auth", value: await authToken(E2E_PASSWORD), url: "http://localhost:3211" },
   ]);
 }

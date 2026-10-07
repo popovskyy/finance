@@ -95,12 +95,12 @@ export function TransactionFields({ state, onChange, category, currency, symbol,
       <Segmented
         label="Тип операції"
         size="sm"
-        className="flex w-full"
+        layout="grid"
         value={state.type}
         onChange={(type) => set({ type })}
         options={types.map((type) => ({ value: type, label: txTypeLabel(type, category) }))}
       />
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 items-end gap-3">
         <Field label={isCash ? "Сума" : "Кількість"} hint={symbol}>
           <Input
             inputMode="decimal"
@@ -126,7 +126,7 @@ export function TransactionFields({ state, onChange, category, currency, symbol,
           </Field>
         )}
       </div>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 items-end gap-3">
         {!isCash && (
           <Field label="Дата">
             <Input type="date" value={state.date} onChange={(e) => set({ date: e.target.value })} />
@@ -155,9 +155,9 @@ export function TransactionFields({ state, onChange, category, currency, symbol,
         <Input value={state.note} maxLength={500} onChange={(e) => set({ note: e.target.value })} />
       </Field>
       {showTotal && (
-        <p className="tabular flex items-baseline justify-between rounded-xl bg-surface-2 px-4 py-3 text-sm">
+        <p className="tabular flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 rounded-xl bg-surface-2 px-4 py-3 text-sm">
           <span className="text-muted">{inflow ? "Разом із комісією" : "Отримаєте після комісії"}</span>
-          <span className="text-base font-semibold">{formatMoney(total, currency ?? "")}</span>
+          <span className="text-lg font-semibold">{formatMoney(total, currency ?? "")}</span>
         </p>
       )}
     </div>

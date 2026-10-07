@@ -22,12 +22,12 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <header className="flex items-center justify-between gap-4">
+      <header className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <span className="md:hidden">
+          <span className="lg:hidden">
             <Logo size={30} />
           </span>
-          <h1 className="font-display text-xl font-medium tracking-tight">Огляд</h1>
+          <h1 className="font-display text-2xl font-medium tracking-tight">Огляд</h1>
         </div>
         <Button variant="primary" onClick={() => setAdding(true)}>
           <Plus size={18} aria-hidden />
@@ -60,8 +60,8 @@ export default function DashboardPage() {
           <Card order={1}>
             <SummaryStats portfolio={data} />
           </Card>
-          <div className="grid gap-6 lg:grid-cols-3">
-            <Card order={2} className="lg:col-span-2">
+          <div className="grid gap-6 xl:grid-cols-3">
+            <Card order={2} className="xl:col-span-2">
               <NetWorthChart currency={data.baseCurrency} />
             </Card>
             <Card order={3}>
@@ -69,7 +69,7 @@ export default function DashboardPage() {
             </Card>
           </div>
           <Card order={4} className="overflow-hidden">
-            <h2 className="px-5 pt-5 pb-2 font-semibold">Активи</h2>
+            <h2 className="px-5 pt-5 pb-2 text-lg font-semibold tracking-tight">Активи</h2>
             <HoldingsTable portfolio={data} timeframe={timeframe} />
           </Card>
           <Card order={5}>

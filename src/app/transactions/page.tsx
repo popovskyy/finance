@@ -12,8 +12,8 @@ export default function TransactionsPage() {
   return (
     <div className="space-y-6">
       <header>
-        <h1 className="font-display text-xl font-medium tracking-tight">Операції</h1>
-        <p className="mt-1 text-sm text-muted">Усі купівлі, продажі, поповнення та зняття в одному журналі</p>
+        <h1 className="font-display text-2xl font-medium tracking-tight">Операції</h1>
+        <p className="mt-1 text-base text-muted">Усі купівлі, продажі, поповнення та зняття в одному журналі</p>
       </header>
 
       {transactions.isLoading ? (

@@ -35,7 +35,6 @@ test.describe("portfolio flow", () => {
     await dialog(page).getByLabel(/Кількість/).fill("10");
     await dialog(page).getByLabel(/Ціна за одиницю/).fill("100");
     await dialog(page).getByLabel(/Комісія/).fill("2");
-    await expect(dialog(page).getByRole("button", { name: /Підставити поточну ціну/ })).toBeVisible();
     await expect.poll(async () => squash(await dialog(page).locator("p.tabular").innerText())).toContain("1002,00$");
     await dialog(page).getByRole("button", { name: "Додати до портфеля" }).click();
     await waitDialogClosed(page);

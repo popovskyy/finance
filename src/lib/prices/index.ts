@@ -10,6 +10,9 @@ export * from "./types";
 
 const QUOTE_TTL_MS = 60_000;
 const HISTORY_TTL_MS = 10 * 60_000;
+// After a failed history download, wait before asking the provider again, so an
+// outage or a rate limit is not made worse by a retry on every page load.
+const HISTORY_RETRY_MS = 2 * 60_000;
 
 const providers: Record<"CRYPTO" | "STOCK" | "FX", PriceProvider> = {
   CRYPTO: coingecko,
@@ -23,11 +26,18 @@ interface Caches {
   quotes: Map<string, { quote: Quote; at: number }>;
   history: Map<string, { points: DailyPrice[]; from: string; at: number; stale: boolean }>;
   inflight: Map<string, Promise<unknown>>;
+  historyFailedAt: Map<string, number>;
 }
 
 // Kept on globalThis so the caches survive dev-server hot reloads.
 const globalForPrices = globalThis as unknown as { priceCaches?: Caches };
-const caches = (globalForPrices.priceCaches ??= { quotes: new Map(), history: new Map(), inflight: new Map() });
+const caches = (globalForPrices.priceCaches ??= {
+  quotes: new Map(),
+  history: new Map(),
+  inflight: new Map(),
+  historyFailedAt: new Map(),
+});
+caches.historyFailedAt ??= new Map(); // caches created before this field existed (dev hot reload)
 
 function dedupe<T>(key: string, run: () => Promise<T>): Promise<T> {
   const existing = caches.inflight.get(key) as Promise<T> | undefined;
@@ -123,7 +133,10 @@ export async function getHistory(
     const meta = metaRow ? (JSON.parse(metaRow.value) as HistoryMeta) : null;
 
     let stale = false;
-    if (!meta || meta.from > fromKey || meta.fetchedOn !== today) {
+    const failedAt = caches.historyFailedAt.get(cacheKey);
+    const coolingDown = failedAt !== undefined && Date.now() - failedAt < HISTORY_RETRY_MS;
+    if (coolingDown) stale = true;
+    else if (!meta || meta.from > fromKey || meta.fetchedOn !== today) {
       // Stored range already reaches back far enough: only top up the last few days.
       const covered = meta !== null && meta.from <= fromKey;
       const fetchFrom = covered ? new Date(Date.parse(`${meta.fetchedOn}T00:00:00Z`) - 3 * 86_400_000) : from;
@@ -144,8 +157,10 @@ export async function getHistory(
             update: { value: nextMeta },
           }),
         ]);
+        caches.historyFailedAt.delete(cacheKey);
       } catch (error) {
         stale = true;
+        caches.historyFailedAt.set(cacheKey, Date.now());
         console.warn(`[prices] ${source} history for ${id} failed:`, (error as Error).message);
       }
     }

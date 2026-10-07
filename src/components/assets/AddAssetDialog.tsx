@@ -98,7 +98,7 @@ function Content({ onDone }: { onDone: () => void }) {
     <div className="space-y-4">
       <Segmented
         label="Тип активу"
-        className="flex w-full"
+        layout="fill"
         value={category}
         onChange={(next) => {
           setCategory(next);

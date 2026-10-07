@@ -3,11 +3,9 @@ const LOCALE = "uk-UA";
 export function formatMoney(value: number, currency: string, opts: { compact?: boolean; digits?: number } = {}) {
   const abs = Math.abs(value);
   const digits = opts.digits ?? (abs !== 0 && abs < 1 ? 4 : 2);
-  const fraction = {
-    notation: opts.compact ? ("compact" as const) : ("standard" as const),
-    minimumFractionDigits: opts.compact ? 0 : Math.min(digits, 2),
-    maximumFractionDigits: opts.compact ? 1 : digits,
-  };
+  const fraction: Intl.NumberFormatOptions = opts.compact
+    ? { notation: "compact", maximumSignificantDigits: 3 }
+    : { minimumFractionDigits: Math.min(digits, 2), maximumFractionDigits: digits };
   try {
     return new Intl.NumberFormat(LOCALE, {
       style: "currency",

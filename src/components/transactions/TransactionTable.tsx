@@ -15,8 +15,21 @@ import { TransactionDialog } from "./TransactionDialog";
 type AssetRef = Pick<AssetDto, "id" | "symbol" | "name" | "category" | "currency">;
 export type TransactionRow = TransactionDto & { asset: AssetRef };
 
-const TH = "px-3 py-2.5 text-right text-xs font-medium text-muted first:pl-5 first:text-left last:pr-3";
-const TD = "px-3 py-3 text-right first:pl-5 first:text-left last:pr-3";
+const TH = "py-2.5 text-left text-xs font-medium whitespace-nowrap text-muted";
+const TD = "py-3 text-left";
+
+// Columns appear by the card's own width (container queries). In narrow cards the
+// date and operation move under the first cell and the total under the quantity.
+const COL = {
+  date: "hidden pl-5 pr-3 @2xl:table-cell",
+  first: "w-full max-w-0 pl-5 pr-3 @2xl:pl-3",
+  operation: "hidden pl-3 pr-3 @lg:table-cell",
+  quantity: "pl-3 pr-3 !text-right",
+  price: "hidden pl-3 pr-3 !text-right @3xl:table-cell",
+  fee: "hidden pl-3 pr-3 !text-right @4xl:table-cell",
+  total: "hidden pl-3 pr-3 !text-right @3xl:table-cell",
+  actions: "w-px pl-1 pr-3",
+};
 
 export function TransactionTable({ rows, showAsset = true }: { rows: TransactionRow[]; showAsset?: boolean }) {
   const [editing, setEditing] = useState<TransactionRow | null>(null);
@@ -29,18 +42,18 @@ export function TransactionTable({ rows, showAsset = true }: { rows: Transaction
           <ErrorNote message={remove.error.message} />
         </div>
       )}
-      <div className="overflow-x-auto">
+      <div className="@container">
         <table className="w-full border-collapse text-sm">
           <thead>
             <tr className="border-b border-line">
-              <th className={TH}>Дата</th>
-              {showAsset && <th className={clsx(TH, "!text-left")}>Актив</th>}
-              <th className={clsx(TH, "!text-left")}>Операція</th>
-              <th className={TH}>Кількість</th>
-              <th className={clsx(TH, "hidden sm:table-cell")}>Ціна</th>
-              <th className={clsx(TH, "hidden md:table-cell")}>Комісія</th>
-              <th className={clsx(TH, "hidden sm:table-cell")}>Сума</th>
-              <th className={TH}>
+              <th className={clsx(TH, COL.date)}>Дата</th>
+              <th className={clsx(TH, COL.first)}>{showAsset ? "Актив" : "Операція"}</th>
+              {showAsset && <th className={clsx(TH, COL.operation)}>Операція</th>}
+              <th className={clsx(TH, COL.quantity)}>Кількість</th>
+              <th className={clsx(TH, COL.price)}>Ціна</th>
+              <th className={clsx(TH, COL.fee)}>Комісія</th>
+              <th className={clsx(TH, COL.total)}>Сума</th>
+              <th className={clsx(TH, COL.actions)}>
                 <span className="sr-only">Дії</span>
               </th>
             </tr>
@@ -52,44 +65,72 @@ export function TransactionTable({ rows, showAsset = true }: { rows: Transaction
               const quantity = Number(tx.quantity);
               const price = Number(tx.price);
               const fee = Number(tx.fee);
+              const label = txTypeLabel(tx.type, tx.asset.category);
+              const badge = (
+                <span
+                  className={clsx(
+                    "inline-block rounded-full px-2.5 py-0.5 text-xs font-medium whitespace-nowrap",
+                    inflow ? "bg-gain-soft text-gain" : "bg-loss-soft text-loss",
+                  )}
+                >
+                  {label}
+                </span>
+              );
+              const note = tx.note && <span className="mt-1 block truncate text-xs text-muted">{tx.note}</span>;
+              // Under the first cell the year is dropped for this year's operations.
+              const shortDate = formatDate(tx.date, new Date(tx.date).getFullYear() !== new Date().getFullYear());
+
               return (
                 <tr key={tx.id} className="row-in border-b border-line/70 last:border-0" style={{ "--i": i } as CSSProperties}>
-                  <td className={clsx(TD, "whitespace-nowrap text-muted")}>{formatDate(tx.date)}</td>
-                  {showAsset && (
-                    <td className={clsx(TD, "!text-left")}>
-                      <Link href={`/assets/${tx.asset.id}`} className="font-semibold underline-offset-2 hover:underline">
-                        {tx.asset.symbol}
-                      </Link>
-                    </td>
-                  )}
-                  <td className={clsx(TD, "!text-left")}>
-                    <span
-                      className={clsx(
-                        "inline-block rounded-full px-2.5 py-0.5 text-xs font-medium whitespace-nowrap",
-                        inflow ? "bg-gain-soft text-gain" : "bg-loss-soft text-loss",
-                      )}
-                    >
-                      {txTypeLabel(tx.type, tx.asset.category)}
-                    </span>
-                    {tx.note && <span className="mt-1 block max-w-[14rem] truncate text-xs text-muted">{tx.note}</span>}
+                  <td className={clsx(TD, COL.date, "whitespace-nowrap text-muted")}>{formatDate(tx.date)}</td>
+                  <td className={clsx(TD, COL.first)}>
+                    {showAsset ? (
+                      <>
+                        <Link
+                          href={`/assets/${tx.asset.id}`}
+                          className="block truncate text-base font-semibold underline-offset-2 hover:underline"
+                        >
+                          {tx.asset.symbol}
+                        </Link>
+                        <span className="mt-0.5 flex flex-wrap gap-x-2 text-xs text-muted @2xl:hidden">
+                          <span className={clsx("font-medium @lg:hidden", inflow ? "text-gain" : "text-loss")}>{label}</span>
+                          <span>{shortDate}</span>
+                        </span>
+                        {note}
+                      </>
+                    ) : (
+                      <>
+                        {badge}
+                        <span className="mt-1 block text-xs text-muted @2xl:hidden">{shortDate}</span>
+                        {note}
+                      </>
+                    )}
                   </td>
-                  <td className={clsx(TD, "tabular whitespace-nowrap")}>
+                  {showAsset && (
+                    <td className={clsx(TD, COL.operation)}>{badge}</td>
+                  )}
+                  <td className={clsx(TD, COL.quantity, "tabular whitespace-nowrap")}>
                     {inflow ? "+" : "−"}
                     {formatQuantity(quantity)}
+                    {!isCash && (
+                      <span className="block text-xs text-muted @3xl:hidden">
+                        {formatMoney(quantity * price, tx.asset.currency)}
+                      </span>
+                    )}
                   </td>
-                  <td className={clsx(TD, "tabular hidden sm:table-cell")}>
+                  <td className={clsx(TD, COL.price, "tabular whitespace-nowrap")}>
                     {isCash ? "—" : formatMoney(price, tx.asset.currency)}
                   </td>
-                  <td className={clsx(TD, "tabular hidden text-muted md:table-cell")}>
+                  <td className={clsx(TD, COL.fee, "tabular whitespace-nowrap text-muted")}>
                     {fee ? formatMoney(fee, tx.asset.currency) : "—"}
                   </td>
-                  <td className={clsx(TD, "tabular hidden font-medium sm:table-cell")}>
+                  <td className={clsx(TD, COL.total, "tabular font-medium whitespace-nowrap")}>
                     {formatMoney(quantity * price, tx.asset.currency)}
                   </td>
-                  <td className={clsx(TD, "w-px whitespace-nowrap")}>
+                  <td className={clsx(TD, COL.actions, "whitespace-nowrap")}>
                     <span className="flex items-center justify-end gap-0.5">
                       <Button variant="ghost" size="icon" aria-label="Редагувати операцію" onClick={() => setEditing(tx)}>
-                        <Pencil size={15} />
+                        <Pencil size={16} />
                       </Button>
                       <ConfirmButton
                         compact
