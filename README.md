@@ -13,7 +13,7 @@
 
 ## Локальний запуск
 
-Потрібні Node.js 22+. Локальний запуск працює з тією ж базою Neon, що й продакшн, тож дані скрізь однакові.
+Потрібні Node.js 22+. Локальний запуск працює з тією ж базою Neon, що й продакшн, тож дані скрізь однакові. Тому зміни, зроблені локально, одразу потрапляють у продакшн; для експериментів беріть Docker-базу нижче.
 
 ```bash
 vercel link && vercel env pull .env.local   # DATABASE_URL від Neon
@@ -39,7 +39,7 @@ npm test                      # юніт-тести рушія PnL (Vitest)
 npm run e2e                   # збірка + сценарії в браузері (Playwright)
 ```
 
-E2E-тести працюють з окремою базою `statky_test` у Docker-контейнері з `docker-compose.yml` (`CREATE DATABASE statky_test`), реальними провайдерами цін і, якщо задано `GEMINI_API_KEY`, реальним Gemini.
+E2E-тести працюють з окремою базою `statky_test` у Docker-контейнері з `docker-compose.yml` (`scripts/reset-test-db.mjs` скидає лише локальну базу з назвою на `_test` і відмовляється чіпати будь-яку іншу) (`CREATE DATABASE statky_test`), реальними провайдерами цін і, якщо задано `GEMINI_API_KEY`, реальним Gemini.
 
 ## Деплой на Vercel
 

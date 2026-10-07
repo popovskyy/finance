@@ -26,10 +26,10 @@ export default defineConfig({
     { name: "iphone", use: { ...devices["iPhone 15"], browserName: "chromium" }, testMatch: /mobile\.spec\.ts/ },
   ],
   webServer: {
-    command: `npx prisma migrate reset --force && npx next start -p ${PORT}`,
+    command: `node scripts/reset-test-db.mjs && npx next start -p ${PORT}`,
     url: `http://localhost:${PORT}/unlock`,
     reuseExistingServer: false,
     timeout: 120_000,
-    env: { DATABASE_URL: TEST_DB, APP_PASSWORD: E2E_PASSWORD, PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION: "yes" },
+    env: { DATABASE_URL: TEST_DB, DATABASE_URL_UNPOOLED: TEST_DB, APP_PASSWORD: E2E_PASSWORD },
   },
 });

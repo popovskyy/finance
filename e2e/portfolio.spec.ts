@@ -162,6 +162,11 @@ test.describe("portfolio flow", () => {
     await page.getByRole("button", { name: "Проаналізувати портфель" }).click();
     await expect(page.getByRole("heading", { name: "Оцінка ризику" })).toBeVisible({ timeout: 90_000 });
 
+    // Slow history load, as on a cold serverless start: a reply sent meanwhile must not vanish.
+    await page.route("**/api/ai/chat", async (route) => {
+      if (route.request().method() === "GET") await new Promise((resolve) => setTimeout(resolve, 2500));
+      await route.continue();
+    });
     await page.getByRole("button", { name: "Відкрити чат з AI-аналітиком" }).click();
     await page.getByLabel("Ваше питання").fill("Скільки SOL у мене зараз? Відповідь одним реченням.");
     await page.getByRole("button", { name: "Надіслати" }).click();

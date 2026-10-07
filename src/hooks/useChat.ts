@@ -24,6 +24,9 @@ export function useChat(enabled: boolean) {
   async function send(message: string) {
     if (streaming) return;
     setStreaming(true);
+    // A history request still in flight would land after this and wipe the new messages.
+    const historyLoaded = client.getQueryState(KEY)?.status === "success";
+    await client.cancelQueries({ queryKey: KEY });
     const replyId = `pending-${Date.now()}`;
     patch((m) => [...m, { id: `${replyId}-q`, role: "user", content: message }, { id: replyId, role: "assistant", content: "" }]);
     const setReply = (content: string) => patch((m) => m.map((x) => (x.id === replyId ? { ...x, content } : x)));
@@ -51,6 +54,8 @@ export function useChat(enabled: boolean) {
       setReply(error instanceof Error ? error.message : "Не вдалося отримати відповідь. Спробуйте ще раз.");
     } finally {
       setStreaming(false);
+      // If the earlier history was cancelled above, load it now (it includes this exchange).
+      if (!historyLoaded) void client.invalidateQueries({ queryKey: KEY });
     }
   }
 
