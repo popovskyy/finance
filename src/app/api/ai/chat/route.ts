@@ -7,6 +7,8 @@ import { chatSchema } from "@/lib/validation";
 
 const HISTORY_LIMIT = 20;
 
+export const maxDuration = 60;
+
 export const GET = handle(async () => {
   const latest = await db.chatMessage.findMany({ orderBy: { createdAt: "desc" }, take: 200 });
   return NextResponse.json(latest.reverse());

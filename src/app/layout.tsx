@@ -12,7 +12,7 @@ export const metadata: Metadata = {
   title: { default: "Статки", template: "%s · Статки" },
   description: "Крипто, акції та готівка в одному місці",
   applicationName: "Статки",
-  appleWebApp: { capable: true, title: "Статки", statusBarStyle: "black-translucent" },
+  appleWebApp: { capable: true, title: "Статки", statusBarStyle: "default" },
   formatDetection: { telephone: false },
   icons: {
     icon: [

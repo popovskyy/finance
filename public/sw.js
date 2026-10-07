@@ -1,7 +1,10 @@
 // Offline shell for the installed app. API responses are never cached:
 // balances must always come from the server.
-const CACHE = "statky-v1";
+const CACHE = "statky-v2";
 const OFFLINE_URL = "/offline.html";
+
+// Only plain successful same-origin responses; redirects (e.g. to /unlock) and errors are not kept.
+const cacheable = (response) => response.ok && response.type === "basic" && !response.redirected;
 
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(CACHE).then((cache) => cache.add(OFFLINE_URL)));
@@ -27,8 +30,10 @@ self.addEventListener("fetch", (event) => {
     event.respondWith(
       fetch(request)
         .then((response) => {
-          const copy = response.clone();
-          caches.open(CACHE).then((cache) => cache.put(request, copy));
+          if (cacheable(response)) {
+            const copy = response.clone();
+            caches.open(CACHE).then((cache) => cache.put(request, copy));
+          }
           return response;
         })
         .catch(async () => (await caches.match(request)) ?? (await caches.match(OFFLINE_URL))),
@@ -43,8 +48,10 @@ self.addEventListener("fetch", (event) => {
         (cached) =>
           cached ??
           fetch(request).then((response) => {
-            const copy = response.clone();
-            caches.open(CACHE).then((cache) => cache.put(request, copy));
+            if (cacheable(response)) {
+              const copy = response.clone();
+              caches.open(CACHE).then((cache) => cache.put(request, copy));
+            }
             return response;
           }),
       ),

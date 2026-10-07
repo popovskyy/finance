@@ -7,6 +7,8 @@ import { HttpError, handle } from "@/lib/http";
 const KEY = "ai:insights";
 
 /** Last generated report, or null if none has been generated yet. */
+export const maxDuration = 60;
+
 export const GET = handle(async () => {
   const row = await db.setting.findUnique({ where: { key: KEY } });
   return NextResponse.json(row ? (JSON.parse(row.value) as StoredInsights) : null);
