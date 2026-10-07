@@ -25,11 +25,14 @@ export function PnlText({ abs, pct, currency, layout = "inline", className }: Pr
     );
   }
   return (
-    <span className={clsx("tabular inline-flex items-center gap-1", TONE_CLASS[t], className)}>
-      {t === "gain" && <ArrowUpRight size="1.1em" aria-hidden />}
-      {t === "loss" && <ArrowDownRight size="1.1em" aria-hidden />}
-      <span>{formatSignedMoney(abs, currency)}</span>
-      {pct !== undefined && pct !== null && <span className="opacity-80">({formatPercent(pct)})</span>}
+    // Wraps the percentage onto its own line when the pair doesn't fit (half-width stat cells on phones)
+    <span className={clsx("tabular inline-flex flex-wrap items-center gap-x-1", TONE_CLASS[t], className)}>
+      <span className="inline-flex items-center gap-1 whitespace-nowrap">
+        {t === "gain" && <ArrowUpRight size="1.1em" aria-hidden />}
+        {t === "loss" && <ArrowDownRight size="1.1em" aria-hidden />}
+        {formatSignedMoney(abs, currency)}
+      </span>
+      {pct !== undefined && pct !== null && <span className="whitespace-nowrap opacity-80">({formatPercent(pct)})</span>}
     </span>
   );
 }

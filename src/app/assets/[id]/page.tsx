@@ -126,7 +126,7 @@ export default function AssetPage() {
 
 function Stat({ label, value, sub }: { label: string; value: React.ReactNode; sub?: string }) {
   return (
-    <div className="bg-surface px-5 py-4">
+    <div className="min-w-0 bg-surface px-5 py-4">
       <dt className="text-sm text-muted">{label}</dt>
       <dd className="tabular mt-1 text-lg font-semibold">{value}</dd>
       {sub && <dd className="tabular mt-0.5 text-xs text-muted">{sub}</dd>}
