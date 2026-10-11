@@ -6,7 +6,7 @@ import { InsightsCard } from "@/components/ai/InsightsCard";
 import { AddAssetDialog } from "@/components/assets/AddAssetDialog";
 import { AllocationDonut } from "@/components/dashboard/AllocationDonut";
 import { HoldingsTable } from "@/components/dashboard/HoldingsTable";
-import { NetWorthChart } from "@/components/dashboard/NetWorthChart";
+import { NetWorthChart, type Scrub } from "@/components/dashboard/NetWorthChart";
 import { NetWorthHero, SummaryStats } from "@/components/dashboard/NetWorthHero";
 import { Button } from "@/components/ui/Button";
 import { Card, ErrorNote } from "@/components/ui/Card";
@@ -18,6 +18,7 @@ export default function DashboardPage() {
   const portfolio = usePortfolio();
   const [timeframe, setTimeframe] = useState<Timeframe>("1D");
   const [adding, setAdding] = useState(false);
+  const [scrub, setScrub] = useState<Scrub | null>(null);
   const data = portfolio.data;
 
   return (
@@ -56,13 +57,13 @@ export default function DashboardPage() {
         </Card>
       ) : (
         <>
-          <NetWorthHero portfolio={data} timeframe={timeframe} onTimeframe={setTimeframe} />
+          <NetWorthHero portfolio={data} timeframe={timeframe} onTimeframe={setTimeframe} scrub={scrub} />
           <Card order={1}>
             <SummaryStats portfolio={data} />
           </Card>
           <div className="grid gap-6 xl:grid-cols-3">
             <Card order={2} className="xl:col-span-2">
-              <NetWorthChart currency={data.baseCurrency} />
+              <NetWorthChart currency={data.baseCurrency} onScrub={setScrub} />
             </Card>
             <Card order={3}>
               <AllocationDonut portfolio={data} />

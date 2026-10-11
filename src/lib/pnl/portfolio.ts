@@ -54,6 +54,8 @@ export interface Holding {
   allocationPct: number;
   /** Its market is idle today; the day's figure is shown as not trading. */
   marketClosed: boolean;
+  /** Unit value in the base currency for each of the last seven days and now. */
+  spark: number[];
   stale: boolean;
 }
 
@@ -69,6 +71,8 @@ export interface PortfolioSummary {
   holdings: Holding[];
   /** Every market behind the open positions is idle today. */
   marketClosed: boolean;
+  /** Highest daily net worth before today; null while the history is under a week long. */
+  previousHigh: number | null;
   stale: boolean;
 }
 
@@ -136,6 +140,23 @@ function assetPeriods(asset: AssetInput, baseTxs: Tx[], endPrice: number, now: D
   return result;
 }
 
+const SPARK_DAYS = 7;
+
+function sparkline(asset: AssetInput, now: Date): number[] {
+  const points: number[] = [];
+  for (let day = SPARK_DAYS; day >= 1; day--) {
+    const at = new Date(now.getTime() - day * DAY_MS);
+    points.push(nativePriceAt(asset, at) * fxAt(asset, at));
+  }
+  points.push(currentNativePrice(asset, now) * currentFx(asset));
+  return points;
+}
+
+function previousHigh(assets: AssetInput[], now: Date): number | null {
+  const past = buildHistory(assets, new Date(0), now).slice(0, -1);
+  return past.length >= SPARK_DAYS ? Math.max(...past.map((p) => p.value)) : null;
+}
+
 export function buildPortfolio(assets: AssetInput[], baseCurrency: string, now = new Date()): PortfolioSummary {
   const rows = assets.map((asset) => {
     const nativePrice = currentNativePrice(asset, now);
@@ -184,6 +205,7 @@ export function buildPortfolio(assets: AssetInput[], baseCurrency: string, now =
       pnl: Object.fromEntries(TIMEFRAMES.map((tf) => [tf, toPnl(r.periods[tf])])) as Record<Timeframe, Pnl>,
       allocationPct: share(r.value),
       marketClosed: r.asset.marketClosed === true,
+      spark: sparkline(r.asset, now),
       stale: r.asset.stale,
     }))
     .sort((a, b) => b.value - a.value);
@@ -216,6 +238,7 @@ export function buildPortfolio(assets: AssetInput[], baseCurrency: string, now =
     categories,
     holdings,
     marketClosed: priced.length > 0 && priced.every((r) => r.asset.marketClosed === true),
+    previousHigh: previousHigh(assets, now),
     stale: assets.some((a) => a.stale),
   };
 }
@@ -253,5 +276,32 @@ export function buildHistory(assets: AssetInput[], from: Date, now = new Date())
     points.push({ date: key, value: valueAt(endOfDay, false) });
   }
   points.push({ date: todayKey, value: valueAt(now, true) });
+  return points;
+}
+
+export interface PricePoint {
+  date: string;
+  price: number;
+}
+
+/**
+ * Daily unit price since `from`, ending on today's live price: in the asset's own
+ * currency, or for cash the exchange rate into the base currency.
+ */
+export function buildAssetHistory(asset: AssetInput, from: Date, now = new Date()): PricePoint[] {
+  const firstTx = asset.txs.length > 0 ? Math.min(...asset.txs.map((tx) => tx.date.getTime())) : now.getTime();
+  const startMs = Math.min(from.getTime() === 0 ? firstTx : from.getTime(), now.getTime() - DAY_MS);
+  const price = (at: Date) => (asset.category === "CASH" ? fxAt(asset, at) : nativePriceAt(asset, at));
+  const totalDays = Math.floor((now.getTime() - startMs) / DAY_MS);
+  const step = Math.max(1, Math.ceil(totalDays / 370));
+  const todayKey = toDateKey(now);
+  const points: PricePoint[] = [];
+  for (let ms = startMs; ; ms += step * DAY_MS) {
+    const at = new Date(ms);
+    const key = toDateKey(at);
+    if (key >= todayKey) break;
+    points.push({ date: key, price: price(at) });
+  }
+  points.push({ date: todayKey, price: asset.category === "CASH" ? currentFx(asset) : currentNativePrice(asset, now) });
   return points;
 }

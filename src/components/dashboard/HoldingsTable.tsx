@@ -4,7 +4,10 @@ import clsx from "clsx";
 import { TriangleAlert } from "lucide-react";
 import Link from "next/link";
 import { Fragment, type CSSProperties } from "react";
+import { AssetAvatar } from "@/components/ui/AssetAvatar";
+import { Flash } from "@/components/ui/Flash";
 import { PnlText } from "@/components/ui/PnlText";
+import { Sparkline } from "@/components/ui/Sparkline";
 import { formatMoney, formatPercent, formatQuantity } from "@/lib/format";
 import { CATEGORY_COLOR, CATEGORY_LABEL, TIMEFRAME_LABEL } from "@/lib/labels";
 import type { PortfolioSummary, Timeframe } from "@/lib/pnl/portfolio";
@@ -17,6 +20,7 @@ const TD = "py-3 text-right";
 // right padding, which is why some columns switch it off at the next step.
 const COL = {
   price: "hidden pl-3 pr-3 @xl:table-cell",
+  spark: "hidden pl-3 pr-3 @4xl:table-cell",
   quantity: "hidden pl-3 pr-3 @2xl:table-cell",
   avgCost: "hidden pl-3 pr-3 @6xl:table-cell",
   value: "pl-3 pr-5 @md:pr-3",
@@ -36,6 +40,7 @@ export function HoldingsTable({ portfolio, timeframe }: { portfolio: PortfolioSu
           <tr className="border-b border-line">
             <th className={clsx(TH, "pr-3 pl-5 !text-left")}>Актив</th>
             <th className={clsx(TH, COL.price)}>Ціна</th>
+            <th className={clsx(TH, COL.spark)}>7 днів</th>
             <th className={clsx(TH, COL.quantity)}>Кількість</th>
             <th className={clsx(TH, COL.avgCost)}>Середня ціна</th>
             <th className={clsx(TH, COL.value)}>Вартість</th>
@@ -48,7 +53,7 @@ export function HoldingsTable({ portfolio, timeframe }: { portfolio: PortfolioSu
           {portfolio.categories.map((group) => (
             <Fragment key={group.category}>
               <tr className="bg-surface-2/70">
-                <th colSpan={8} scope="rowgroup" className="px-5 py-2 text-left font-medium">
+                <th colSpan={9} scope="rowgroup" className="px-5 py-2 text-left font-medium">
                   <span className="flex items-center gap-2">
                     <span className="size-2 shrink-0 rounded-full" style={{ background: CATEGORY_COLOR[group.category] }} />
                     {CATEGORY_LABEL[group.category]}
@@ -74,25 +79,33 @@ export function HoldingsTable({ portfolio, timeframe }: { portfolio: PortfolioSu
                       {/* Takes the leftover width and truncates, so long names never widen the table. */}
                       <td className={clsx(TD, "w-full max-w-0 pr-3 pl-5 !text-left")}>
                         {/* The link stretches over the row so the whole line is clickable. */}
-                        <Link href={`/assets/${h.id}`} className="block after:absolute after:inset-0">
-                          <span className="flex items-center gap-1.5 text-base font-semibold">
-                            <span className="truncate">{h.symbol}</span>
-                            {h.stale && (
-                              <TriangleAlert size={14} className="shrink-0 text-warn" aria-label="Ціна може бути застарілою" />
-                            )}
+                        <Link href={`/assets/${h.id}`} className="flex items-center gap-3 after:absolute after:inset-0">
+                          <AssetAvatar category={h.category} symbol={h.symbol} className="hidden @xs:grid" />
+                          <span className="min-w-0">
+                            <span className="flex items-center gap-1.5 text-base font-semibold">
+                              <span className="truncate">{h.symbol}</span>
+                              {h.stale && (
+                                <TriangleAlert size={14} className="shrink-0 text-warn" aria-label="Ціна може бути застарілою" />
+                              )}
+                            </span>
+                            <span className="block truncate text-xs text-muted">{closed ? "Позицію закрито" : h.name}</span>
                           </span>
-                          <span className="block truncate text-xs text-muted">{closed ? "Позицію закрито" : h.name}</span>
                         </Link>
                       </td>
                       <td className={clsx(TD, COL.price, "tabular whitespace-nowrap")}>
-                        {isCash ? "—" : formatMoney(h.price, h.currency)}
+                        {isCash ? "—" : <Flash value={h.price}>{formatMoney(h.price, h.currency)}</Flash>}
+                      </td>
+                      <td className={clsx(TD, COL.spark)}>
+                        <Sparkline points={h.spark} className="ml-auto block" />
                       </td>
                       <td className={clsx(TD, COL.quantity, "tabular whitespace-nowrap")}>{formatQuantity(h.quantity)}</td>
                       <td className={clsx(TD, COL.avgCost, "tabular whitespace-nowrap text-muted")}>
                         {isCash || closed ? "—" : formatMoney(h.avgCost, h.currency)}
                       </td>
                       <td className={clsx(TD, COL.value)}>
-                        <span className="tabular block font-medium whitespace-nowrap">{formatMoney(h.value, currency)}</span>
+                        <span className="tabular block font-medium whitespace-nowrap">
+                          <Flash value={h.value}>{formatMoney(h.value, currency)}</Flash>
+                        </span>
                         {/* Narrow cards have no period column: its figure sits under the value. */}
                         {idle ? (
                           <span className="block text-xs text-muted @md:hidden">Ринок закритий</span>

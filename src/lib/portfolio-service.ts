@@ -1,6 +1,14 @@
 import Decimal from "decimal.js";
 import { db } from "@/lib/db";
-import { buildHistory, buildPortfolio, type AssetInput, type HistoryPoint, type PortfolioSummary } from "@/lib/pnl/portfolio";
+import {
+  buildAssetHistory,
+  buildHistory,
+  buildPortfolio,
+  type AssetInput,
+  type HistoryPoint,
+  type PortfolioSummary,
+  type PricePoint,
+} from "@/lib/pnl/portfolio";
 import { computePosition } from "@/lib/pnl/positions";
 import type { Tx } from "@/lib/pnl/types";
 import { fx, getHistory, getQuotes, PriceSeries, type Category } from "@/lib/prices";
@@ -144,4 +152,13 @@ export async function getPortfolioHistory(range: HistoryRange): Promise<HistoryP
   const { inputs } = await loadAssetInputs();
   const days = RANGE_DAYS[range];
   return buildHistory(inputs, days ? new Date(Date.now() - days * DAY_MS) : new Date(0));
+}
+
+/** Price history of one asset for its chart; null when the asset does not exist. */
+export async function getAssetPriceHistory(id: string, range: HistoryRange): Promise<PricePoint[] | null> {
+  const { inputs } = await loadAssetInputs();
+  const asset = inputs.find((input) => input.id === id);
+  if (!asset) return null;
+  const days = RANGE_DAYS[range];
+  return buildAssetHistory(asset, days ? new Date(Date.now() - days * DAY_MS) : new Date(0));
 }

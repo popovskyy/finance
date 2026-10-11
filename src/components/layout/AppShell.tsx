@@ -1,11 +1,11 @@
 "use client";
 
 import clsx from "clsx";
-import { ArrowLeftRight, LayoutDashboard, Settings } from "lucide-react";
+import { ArrowLeftRight, LayoutDashboard, Settings, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import type { ReactNode } from "react";
-import { ChatWidget } from "@/components/ai/ChatWidget";
+import { useEffect, useState, type ReactNode } from "react";
+import { CHAT_STATE_EVENT, CHAT_TOGGLE_EVENT, ChatWidget } from "@/components/ai/ChatWidget";
 import { Logo } from "./Logo";
 
 const NAV = [
@@ -16,6 +16,13 @@ const NAV = [
 
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
+  const [chatOpen, setChatOpen] = useState(false);
+  useEffect(() => {
+    const onState = (event: Event) => setChatOpen((event as CustomEvent<boolean>).detail);
+    window.addEventListener(CHAT_STATE_EVENT, onState);
+    return () => window.removeEventListener(CHAT_STATE_EVENT, onState);
+  }, []);
+
   if (pathname === "/unlock") {
     return <main className="mx-auto w-full max-w-[1400px] px-4 py-10">{children}</main>;
   }
@@ -61,14 +68,27 @@ export function AppShell({ children }: { children: ReactNode }) {
             href={href}
             aria-current={isActive(href) ? "page" : undefined}
             className={clsx(
-              "pressable flex h-16 flex-1 flex-col items-center justify-center gap-1 text-xs font-medium",
-              isActive(href) ? "text-accent" : "text-muted",
+              "pressable tab-item flex h-16 flex-1 flex-col items-center justify-center gap-1 text-xs font-medium",
+              isActive(href) && !chatOpen ? "text-accent" : "text-muted",
             )}
           >
             <Icon size={21} aria-hidden />
             {label}
           </Link>
         ))}
+        <button
+          type="button"
+          onClick={() => window.dispatchEvent(new Event(CHAT_TOGGLE_EVENT))}
+          aria-expanded={chatOpen}
+          aria-label={chatOpen ? "Закрити чат" : "Відкрити чат з AI-аналітиком"}
+          className={clsx(
+            "pressable tab-item flex h-16 flex-1 flex-col items-center justify-center gap-1 text-xs font-medium",
+            chatOpen ? "text-accent" : "text-muted",
+          )}
+        >
+          <Sparkles size={21} aria-hidden />
+          Аналітик
+        </button>
       </nav>
 
       <ChatWidget />

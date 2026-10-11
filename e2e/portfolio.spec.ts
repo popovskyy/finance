@@ -38,7 +38,7 @@ test.describe("portfolio flow", () => {
     await expect.poll(async () => squash(await dialog(page).locator("p.tabular").innerText())).toContain("1002,00$");
     await dialog(page).getByRole("button", { name: "Додати до портфеля" }).click();
     await waitDialogClosed(page);
-    await expect(page.getByRole("link", { name: /SOL/ })).toBeVisible();
+    await expect(page.locator("tbody").getByRole("link", { name: /SOL/ })).toBeVisible();
 
     await page.getByRole("button", { name: "Додати актив" }).click();
     await dialog(page).getByRole("radio", { name: "Акції" }).click();
@@ -69,7 +69,7 @@ test.describe("portfolio flow", () => {
 
   test("records sells with average-cost PnL and guards the ledger", async ({ page }) => {
     await page.goto("/");
-    await page.getByRole("link", { name: /SOL/ }).click();
+    await page.locator("tbody").getByRole("link", { name: /SOL/ }).click();
     await expect(page.getByRole("heading", { name: "SOL" })).toBeVisible();
 
     await page.getByRole("button", { name: "Нова операція" }).click();
@@ -147,7 +147,7 @@ test.describe("portfolio flow", () => {
 
   test("deletes an asset with its operations", async ({ page }) => {
     await page.goto("/");
-    await page.getByRole("link", { name: /MSFT/ }).click();
+    await page.locator("tbody").getByRole("link", { name: /MSFT/ }).click();
     await page.getByRole("button", { name: "Видалити актив" }).click();
     await page.getByRole("button", { name: "Точно видалити?" }).click();
     await expect(page).toHaveURL(/\/$/);

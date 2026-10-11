@@ -4,8 +4,10 @@ import { ArrowLeft, Plus } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
+import { AssetPriceChart } from "@/components/assets/AssetPriceChart";
 import { TransactionDialog } from "@/components/transactions/TransactionDialog";
 import { TransactionTable } from "@/components/transactions/TransactionTable";
+import { AssetAvatar } from "@/components/ui/AssetAvatar";
 import { Button } from "@/components/ui/Button";
 import { Card, ErrorNote } from "@/components/ui/Card";
 import { ConfirmButton } from "@/components/ui/ConfirmButton";
@@ -58,10 +60,13 @@ export default function AssetPage() {
     <div className="space-y-6">
       {back}
       <header className="rise flex flex-wrap items-end justify-between gap-4">
-        <div className="min-w-0">
-          <p className="text-sm text-muted">{CATEGORY_LABEL[data.category]}</p>
-          <h1 className="font-display text-3xl font-medium tracking-tight">{data.symbol}</h1>
-          <p className="truncate text-muted">{data.name}</p>
+        <div className="flex min-w-0 items-center gap-4">
+          <AssetAvatar category={data.category} symbol={data.symbol} size={56} className="pop-in" />
+          <div className="min-w-0">
+            <p className="text-sm text-muted">{CATEGORY_LABEL[data.category]}</p>
+            <h1 className="font-display text-3xl font-medium tracking-tight">{data.symbol}</h1>
+            <p className="truncate text-muted">{data.name}</p>
+          </div>
         </div>
         <Button variant="primary" onClick={() => setAdding(true)}>
           <Plus size={18} aria-hidden />
@@ -81,8 +86,11 @@ export default function AssetPage() {
             />
             <Stat
               label="Нереалізований результат"
-              value={<PnlText abs={holding.unrealized.abs} pct={holding.unrealized.pct} currency={base} />}
-              sub={isCash ? "Через зміну курсу" : `Середня ціна ${formatMoney(holding.avgCost, data.currency)}`}
+              value={<PnlText abs={holding.unrealized.abs} currency={base} />}
+              sub={
+                (holding.unrealized.pct !== null ? `${formatPercent(holding.unrealized.pct)} · ` : "") +
+                (isCash ? "через зміну курсу" : `середня ціна ${formatMoney(holding.avgCost, data.currency)}`)
+              }
             />
             <Stat label="Зафіксований результат" value={<PnlText abs={holding.realized} currency={base} />} />
           </dl>
@@ -105,7 +113,19 @@ export default function AssetPage() {
         portfolio.isLoading && <div className="skeleton h-40 rounded-2xl" />
       )}
 
-      <Card order={2} className="overflow-hidden">
+      {!(isCash && data.currency === base) && (
+        <Card order={2}>
+          <AssetPriceChart
+            assetId={id}
+            title={isCash ? `Курс ${data.currency} до ${base}` : "Ціна"}
+            currency={isCash ? base : data.currency}
+            avgCost={isCash || !holding || holding.quantity === 0 ? undefined : holding.avgCost}
+            transactions={isCash ? [] : data.transactions}
+          />
+        </Card>
+      )}
+
+      <Card order={3} className="overflow-hidden">
         <h2 className="px-5 pt-5 pb-2 text-lg font-semibold tracking-tight">Операції</h2>
         {data.transactions.length === 0 ? (
           <p className="px-5 pb-6 text-sm text-muted">Для цього активу ще немає операцій.</p>

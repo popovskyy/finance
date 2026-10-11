@@ -3,7 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { StoredInsights } from "@/lib/ai/types";
 import { api } from "@/lib/api";
-import type { HistoryPoint, PortfolioSummary } from "@/lib/pnl/portfolio";
+import type { HistoryPoint, PortfolioSummary, PricePoint } from "@/lib/pnl/portfolio";
 import type { TxType } from "@/lib/pnl/types";
 import type { Category, SearchResult } from "@/lib/prices/types";
 
@@ -54,6 +54,15 @@ export function usePortfolioHistory(range: HistoryRange) {
   return useQuery({
     queryKey: ["portfolio", "history", range],
     queryFn: () => api<HistoryPoint[]>(`/api/portfolio/history?range=${range}`),
+    placeholderData: (previous) => previous,
+    staleTime: 5 * 60_000,
+  });
+}
+
+export function useAssetHistory(id: string, range: HistoryRange) {
+  return useQuery({
+    queryKey: ["asset", id, "history", range],
+    queryFn: () => api<PricePoint[]>(`/api/assets/${id}/history?range=${range}`),
     placeholderData: (previous) => previous,
     staleTime: 5 * 60_000,
   });

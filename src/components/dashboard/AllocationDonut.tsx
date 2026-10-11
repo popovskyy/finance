@@ -1,5 +1,7 @@
 "use client";
 
+import clsx from "clsx";
+import { useState } from "react";
 import { Cell, Pie, PieChart, ResponsiveContainer } from "recharts";
 import { formatMoney, formatPercent } from "@/lib/format";
 import { CATEGORY_COLOR, CATEGORY_LABEL } from "@/lib/labels";
@@ -8,6 +10,9 @@ import type { PortfolioSummary } from "@/lib/pnl/portfolio";
 export function AllocationDonut({ portfolio }: { portfolio: PortfolioSummary }) {
   const data = portfolio.categories.filter((c) => c.value > 0);
   const largest = [...data].sort((a, b) => b.value - a.value)[0];
+  // Pointing at a slice or a legend row brings that category forward.
+  const [hovered, setHovered] = useState<string | null>(null);
+  const active = data.find((c) => c.category === hovered) ?? largest;
 
   return (
     <div className="@container flex h-full flex-col p-5">
@@ -30,27 +35,50 @@ export function AllocationDonut({ portfolio }: { portfolio: PortfolioSummary }) 
                   startAngle={90}
                   endAngle={-270}
                   stroke="none"
-                  animationDuration={800}
+                  animationDuration={900}
                   animationEasing="ease-out"
+                  onMouseEnter={(_, index) => setHovered(data[index]?.category ?? null)}
+                  onMouseLeave={() => setHovered(null)}
                 >
                   {data.map((c) => (
-                    <Cell key={c.category} fill={CATEGORY_COLOR[c.category]} />
+                    <Cell
+                      key={c.category}
+                      fill={CATEGORY_COLOR[c.category]}
+                      className="cursor-pointer transition-[fill-opacity] duration-200"
+                      fillOpacity={hovered && hovered !== c.category ? 0.3 : 1}
+                    />
                   ))}
                 </Pie>
               </PieChart>
             </ResponsiveContainer>
-            {largest && (
-              <div className="pointer-events-none absolute inset-0 grid place-content-center text-center">
-                <span className="tabular font-display text-2xl font-medium">
-                  {formatPercent(largest.allocationPct, false)}
+            {active && (
+              <div
+                key={active.category}
+                className="fade-in pointer-events-none absolute inset-0 grid place-content-center text-center"
+              >
+                <span className="tabular font-display text-xl font-medium">
+                  {formatPercent(active.allocationPct, false)}
                 </span>
-                <span className="text-base text-muted">{CATEGORY_LABEL[largest.category]}</span>
+                <span className="text-sm text-muted">{CATEGORY_LABEL[active.category]}</span>
+                {hovered && (
+                  <span className="tabular mt-0.5 text-xs font-medium">
+                    {formatMoney(active.value, portfolio.baseCurrency, { digits: 0 })}
+                  </span>
+                )}
               </div>
             )}
           </div>
           <ul className="grid w-full grid-cols-[auto_minmax(0,1fr)_auto_auto] items-center gap-x-3 gap-y-2.5 text-sm @xs:text-base">
             {data.map((c) => (
-              <li key={c.category} className="col-span-4 grid grid-cols-subgrid items-center">
+              <li
+                key={c.category}
+                onMouseEnter={() => setHovered(c.category)}
+                onMouseLeave={() => setHovered(null)}
+                className={clsx(
+                  "col-span-4 grid grid-cols-subgrid items-center transition-opacity duration-200",
+                  hovered && hovered !== c.category && "opacity-45",
+                )}
+              >
                 <span className="size-2.5 rounded-full" style={{ background: CATEGORY_COLOR[c.category] }} />
                 <span className="min-w-0 truncate">{CATEGORY_LABEL[c.category]}</span>
                 <span className="tabular text-right text-muted">{formatPercent(c.allocationPct, false)}</span>

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { PriceSeries } from "@/lib/prices/series";
-import { buildHistory, buildPortfolio, type AssetInput } from "./portfolio";
+import { buildAssetHistory, buildHistory, buildPortfolio, type AssetInput } from "./portfolio";
 
 const now = new Date("2026-03-31T12:00:00Z");
 const d = (iso: string) => new Date(`${iso}T12:00:00Z`);
@@ -117,5 +117,33 @@ describe("buildHistory", () => {
     expect(last.value).toBeCloseTo(2700, 8);
     const march2 = points.find((p) => p.date === "2026-03-02")!;
     expect(march2.value).toBeCloseTo(1200 + 1150, 8);
+  });
+});
+
+describe("sparkline and record", () => {
+  it("gives each holding a week of prices ending on the live one", () => {
+    const h = buildPortfolio([stock], "USD", now).holdings[0];
+    expect(h.spark).toHaveLength(8);
+    expect(h.spark[0]).toBe(140); // 24 March
+    expect(h.spark.at(-1)).toBe(150);
+  });
+
+  it("knows the highest net worth before today", () => {
+    const p = buildPortfolio([stock], "USD", now);
+    expect(p.previousHigh).toBe(1450);
+    expect(p.netWorth).toBeGreaterThan(p.previousHigh ?? Infinity);
+  });
+});
+
+describe("buildAssetHistory", () => {
+  it("lists daily prices and ends on the live price", () => {
+    const points = buildAssetHistory(stock, new Date(now.getTime() - 10 * 86_400_000), now);
+    expect(points[0]).toEqual({ date: "2026-03-21", price: 120 });
+    expect(points.at(-1)).toEqual({ date: "2026-03-31", price: 150 });
+    expect(points).toHaveLength(11);
+  });
+
+  it("charts the exchange rate for cash", () => {
+    expect(buildAssetHistory(euroCash, new Date(0), now).at(-1)?.price).toBe(1.2);
   });
 });

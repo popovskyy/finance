@@ -5,6 +5,9 @@ import { ArrowUp, MessageCircle, Trash2, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useChat } from "@/hooks/useChat";
 
+export const CHAT_TOGGLE_EVENT = "chat:toggle";
+export const CHAT_STATE_EVENT = "chat:state";
+
 const STARTERS = [
   "Як змінився мій портфель за тиждень?",
   "Який актив приніс найбільше?",
@@ -38,6 +41,15 @@ export function ChatWidget() {
     setEverOpened(true);
     if (!open) setTimeout(() => input.current?.focus(), 120);
   };
+
+  // Phones open the chat from the tab bar instead of a floating button.
+  useEffect(() => {
+    window.addEventListener(CHAT_TOGGLE_EVENT, toggle);
+    return () => window.removeEventListener(CHAT_TOGGLE_EVENT, toggle);
+  });
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent(CHAT_STATE_EVENT, { detail: open }));
+  }, [open]);
 
   const submit = (text: string) => {
     const message = text.trim();
@@ -159,7 +171,7 @@ export function ChatWidget() {
         onClick={toggle}
         aria-expanded={open}
         aria-label={open ? "Закрити чат" : "Відкрити чат з AI-аналітиком"}
-        className="pressable pointer-events-auto grid size-14 place-items-center rounded-full bg-accent text-accent-ink shadow-[var(--shadow-pop)]"
+        className="pressable pointer-events-auto hidden size-14 place-items-center rounded-full bg-accent text-accent-ink shadow-[var(--shadow-pop)] lg:grid"
       >
         {open ? <X size={22} /> : <MessageCircle size={22} />}
       </button>

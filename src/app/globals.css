@@ -180,6 +180,99 @@ body {
   animation-delay: calc(var(--i, 0) * 80ms + 120ms);
 }
 
+/* Ticker: a value that just moved glows green or red for a moment. */
+@keyframes flash-up {
+  from {
+    background-color: color-mix(in oklab, var(--gain) 28%, transparent);
+    color: var(--gain);
+  }
+}
+@keyframes flash-down {
+  from {
+    background-color: color-mix(in oklab, var(--loss) 28%, transparent);
+    color: var(--loss);
+  }
+}
+.flash-up,
+.flash-down {
+  border-radius: 6px;
+  box-decoration-break: clone;
+}
+.flash-up {
+  animation: flash-up 1.2s var(--ease-out);
+}
+.flash-down {
+  animation: flash-down 1.2s var(--ease-out);
+}
+
+/* Sparklines draw themselves from left to right (paths set pathLength="1" and stroke-dasharray="1"). */
+@keyframes draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+}
+.draw-line {
+  animation: draw 900ms var(--ease-out) 200ms both;
+}
+
+/* The chart's "now" dot breathes. */
+@keyframes pulse-ring {
+  0% {
+    transform: scale(1);
+    opacity: 0.55;
+  }
+  100% {
+    transform: scale(3.2);
+    opacity: 0;
+  }
+}
+.pulse-ring {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: pulse-ring 1.8s var(--ease-out) infinite;
+}
+
+/* Small things that arrive with a little bounce. */
+@keyframes pop-in {
+  from {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  70% {
+    transform: scale(1.06);
+  }
+}
+.pop-in {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: pop-in 480ms var(--ease-out) both;
+}
+
+/* All-time high badge: a gold pill with a passing shine. */
+@keyframes shine {
+  to {
+    background-position: -200% 0;
+  }
+}
+.record-badge {
+  color: #5a3a00;
+  background: linear-gradient(110deg, #f6c453 30%, #fff1c2 45%, #f6c453 60%) 0 0 / 200% 100%;
+  animation:
+    pop-in 520ms var(--ease-out) 400ms both,
+    shine 2.6s linear 1s infinite;
+}
+
+/* Tab bar icons hop when chosen. */
+@keyframes hop {
+  40% {
+    transform: translateY(-3px);
+  }
+}
+.tab-item[aria-current="page"] svg,
+.tab-item[aria-expanded="true"] svg {
+  animation: hop 360ms var(--ease-out);
+}
+
 /* Streaming chat cursor. */
 @keyframes blink {
   50% {
@@ -310,13 +403,21 @@ dialog.modal[open]::backdrop {
 @media (prefers-reduced-motion: reduce) {
   .rise,
   .row-in,
-  .grow-x {
+  .grow-x,
+  .pop-in {
     animation: fade 200ms ease both;
     animation-delay: 0s;
   }
   .skeleton,
-  .caret::after {
-    animation: none;
+  .caret::after,
+  .draw-line,
+  .pulse-ring,
+  .record-badge,
+  .tab-item svg {
+    animation: none !important;
+  }
+  .pulse-ring {
+    opacity: 0;
   }
   .pressable:active:not(:disabled),
   .hover-lift:hover {
