@@ -1,4 +1,5 @@
 import YahooFinance from "yahoo-finance2";
+import { sessionQuote } from "./session";
 import { toDateKey, type DailyPrice, type PriceProvider, type Quote, type SearchResult } from "./types";
 
 const yf = new YahooFinance({ suppressNotices: ["yahooSurvey"] });
@@ -33,16 +34,18 @@ export const yahoo: PriceProvider = {
   async getQuotes(ids) {
     if (ids.length === 0) return {};
     const rows = await yf.quote(ids);
+    const now = new Date();
     const quotes: Record<string, Quote> = {};
     for (const row of rows) {
       if (row.regularMarketPrice == null) continue;
       const currency = row.currency ?? "USD";
-      const { price, currency: normalized } = normalize(row.regularMarketPrice, currency);
-      const prev = row.regularMarketPreviousClose;
+      const session = sessionQuote({ ...row, regularMarketPrice: row.regularMarketPrice }, now);
+      const { price, currency: normalized } = normalize(session.price, currency);
       quotes[row.symbol] = {
         price,
-        prevClose: prev == null ? null : normalize(prev, currency).price,
+        prevClose: session.prevClose == null ? null : normalize(session.prevClose, currency).price,
         currency: normalized,
+        closed: session.closed,
       };
     }
     return quotes;

@@ -24,6 +24,8 @@ export interface AssetInput {
   history: PriceSeries;
   /** Conversion of one unit of `currency` into the base currency. */
   fx: { rate: number | null; prevClose: number | null; history: PriceSeries };
+  /** Its market is idle today (weekend, holiday), so the day's change is not real movement. */
+  marketClosed?: boolean;
   stale: boolean;
 }
 
@@ -50,6 +52,8 @@ export interface Holding {
   realized: number;
   pnl: Record<Timeframe, Pnl>;
   allocationPct: number;
+  /** Its market is idle today; the day's figure is shown as not trading. */
+  marketClosed: boolean;
   stale: boolean;
 }
 
@@ -63,6 +67,8 @@ export interface PortfolioSummary {
   pnl: Record<Timeframe, Pnl>;
   categories: { category: Category; value: number; allocationPct: number; pnl: Record<Timeframe, Pnl> }[];
   holdings: Holding[];
+  /** Every market behind the open positions is idle today. */
+  marketClosed: boolean;
   stale: boolean;
 }
 
@@ -147,6 +153,11 @@ export function buildPortfolio(assets: AssetInput[], baseCurrency: string, now =
   const unrealized = netWorth.minus(costBasis);
   const share = (value: Decimal) => (netWorth.gt(0) ? value.div(netWorth).times(100).toNumber() : 0);
 
+  // Base-currency cash never moves, so it neither keeps the day open nor closes it.
+  const priced = rows.filter(
+    (r) => !r.native.quantity.isZero() && !(r.asset.category === "CASH" && r.asset.currency === baseCurrency),
+  );
+
   const combine = (subset: typeof rows) => {
     const result = {} as Record<Timeframe, Pnl>;
     for (const tf of TIMEFRAMES) result[tf] = toPnl(combinePeriodPnl(subset.map((r) => r.periods[tf])));
@@ -172,6 +183,7 @@ export function buildPortfolio(assets: AssetInput[], baseCurrency: string, now =
       realized: r.base.realizedPnl.toNumber(),
       pnl: Object.fromEntries(TIMEFRAMES.map((tf) => [tf, toPnl(r.periods[tf])])) as Record<Timeframe, Pnl>,
       allocationPct: share(r.value),
+      marketClosed: r.asset.marketClosed === true,
       stale: r.asset.stale,
     }))
     .sort((a, b) => b.value - a.value);
@@ -203,6 +215,7 @@ export function buildPortfolio(assets: AssetInput[], baseCurrency: string, now =
     pnl: combine(rows),
     categories,
     holdings,
+    marketClosed: priced.length > 0 && priced.every((r) => r.asset.marketClosed === true),
     stale: assets.some((a) => a.stale),
   };
 }

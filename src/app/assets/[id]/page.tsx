@@ -91,7 +91,11 @@ export default function AssetPage() {
               <div key={tf}>
                 <dt className="text-xs text-muted">{TIMEFRAME_LABEL[tf]}</dt>
                 <dd className="mt-0.5 text-sm font-medium">
-                  <PnlText abs={holding.pnl[tf].abs} pct={holding.pnl[tf].pct} currency={base} />
+                  {tf === "1D" && holding.marketClosed ? (
+                    <span className="text-muted">Ринок закритий</span>
+                  ) : (
+                    <PnlText abs={holding.pnl[tf].abs} pct={holding.pnl[tf].pct} currency={base} />
+                  )}
                 </dd>
               </div>
             ))}

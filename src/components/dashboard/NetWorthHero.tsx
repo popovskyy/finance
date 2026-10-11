@@ -1,7 +1,7 @@
 "use client";
 
 import clsx from "clsx";
-import { TriangleAlert } from "lucide-react";
+import { Moon, TriangleAlert } from "lucide-react";
 import { PnlText } from "@/components/ui/PnlText";
 import { Segmented } from "@/components/ui/Segmented";
 import { useCountUp } from "@/hooks/useCountUp";
@@ -38,6 +38,12 @@ export function NetWorthHero({ portfolio, timeframe, onTimeframe }: Props) {
         <p className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1.5 text-base">
           <PnlText abs={pnl.abs} pct={pnl.pct} currency={currency} className="font-semibold" />
           <span className="text-muted">{TIMEFRAME_PHRASE[timeframe]}</span>
+          {timeframe === "1D" && portfolio.marketClosed && (
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-surface-2 px-2.5 py-0.5 text-xs font-medium text-muted">
+              <Moon size={12} aria-hidden />
+              Ринки закриті
+            </span>
+          )}
           {portfolio.stale && (
             <span className="inline-flex items-center gap-1.5 rounded-full bg-warn-soft px-2.5 py-0.5 text-xs font-medium text-warn">
               <TriangleAlert size={12} aria-hidden />

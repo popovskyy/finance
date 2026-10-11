@@ -87,6 +87,16 @@ describe("buildPortfolio", () => {
     expect(p.holdings.reduce((sum, h) => sum + h.allocationPct, 0)).toBeCloseTo(100, 8);
   });
 
+  it("reports the day as closed only when every priced market is idle", () => {
+    const idleStock = { ...stock, prevClose: 150, marketClosed: true };
+    const usdCash: AssetInput = { ...euroCash, id: "u", symbol: "USD", currency: "USD", fx: flatFx };
+    const p = buildPortfolio([idleStock, usdCash], "USD", now);
+    expect(p.marketClosed).toBe(true);
+    expect(p.holdings.find((h) => h.id === "s")?.marketClosed).toBe(true);
+    expect(p.pnl["1D"].abs).toBe(0);
+    expect(buildPortfolio([idleStock, euroCash], "USD", now).marketClosed).toBe(false);
+  });
+
   it("falls back to the last transaction price when no market data exists", () => {
     const p = buildPortfolio([{ ...stock, price: null, prevClose: null, history: new PriceSeries() }], "USD", now);
     expect(p.holdings[0].price).toBe(100);

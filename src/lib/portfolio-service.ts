@@ -123,6 +123,11 @@ async function loadAssetInputsUncached(): Promise<LoadedInputs> {
       fx: foreign
         ? { rate: fxQuote?.price ?? null, prevClose: fxQuote?.prevClose ?? null, history: fxSeries.series }
         : { rate: 1, prevClose: 1, history: fxSeries.series },
+      // Nothing that prices this asset trades today. Base-currency cash has no market at all.
+      marketClosed:
+        asset.category === "CRYPTO" || (asset.category === "CASH" && !foreign)
+          ? false
+          : (asset.category === "CASH" || quote?.closed === true) && (!foreign || fxQuote?.closed === true),
       stale: priceMissing || fxMissing,
     };
   });

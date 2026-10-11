@@ -5,6 +5,8 @@ export interface Quote {
   /** Previous close (24h-ago price for crypto); null when unknown. */
   prevClose: number | null;
   currency: string;
+  /** The market is idle today (weekend, holiday): `prevClose` equals `price`. */
+  closed?: boolean;
   /** True when the provider failed and this is the last known value. */
   stale?: boolean;
 }

@@ -195,6 +195,7 @@ export const fx = {
           price: toUsd.price * usdToBase.price,
           prevClose: toUsd.prevClose && usdToBase.prevClose ? toUsd.prevClose * usdToBase.prevClose : null,
           currency: base,
+          closed: toUsd.closed === true && usdToBase.closed === true,
           stale: toUsd.stale || usdToBase.stale,
         };
       }

@@ -63,6 +63,8 @@ export function HoldingsTable({ portfolio, timeframe }: { portfolio: PortfolioSu
                 .map((h) => {
                   const closed = h.quantity === 0;
                   const isCash = h.category === "CASH";
+                  // Weekend or holiday: the day has no movement to color.
+                  const idle = timeframe === "1D" && h.marketClosed;
                   return (
                     <tr
                       key={h.id}
@@ -92,15 +94,23 @@ export function HoldingsTable({ portfolio, timeframe }: { portfolio: PortfolioSu
                       <td className={clsx(TD, COL.value)}>
                         <span className="tabular block font-medium whitespace-nowrap">{formatMoney(h.value, currency)}</span>
                         {/* Narrow cards have no period column: its figure sits under the value. */}
-                        <PnlText
-                          abs={h.pnl[timeframe].abs}
-                          pct={h.pnl[timeframe].pct}
-                          currency={currency}
-                          className="justify-end text-xs @md:hidden"
-                        />
+                        {idle ? (
+                          <span className="block text-xs text-muted @md:hidden">Ринок закритий</span>
+                        ) : (
+                          <PnlText
+                            abs={h.pnl[timeframe].abs}
+                            pct={h.pnl[timeframe].pct}
+                            currency={currency}
+                            className="justify-end text-xs @md:hidden"
+                          />
+                        )}
                       </td>
                       <td className={clsx(TD, COL.period)}>
-                        <PnlText layout="stack" abs={h.pnl[timeframe].abs} pct={h.pnl[timeframe].pct} currency={currency} />
+                        {idle ? (
+                          <span className="text-xs whitespace-nowrap text-muted">Ринок закритий</span>
+                        ) : (
+                          <PnlText layout="stack" abs={h.pnl[timeframe].abs} pct={h.pnl[timeframe].pct} currency={currency} />
+                        )}
                       </td>
                       <td className={clsx(TD, COL.unrealized)}>
                         <PnlText layout="stack" abs={h.unrealized.abs} pct={h.unrealized.pct} currency={currency} />
